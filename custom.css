@@ -1,0 +1,156 @@
+
+:root {
+  --primary-amber: #78350f;
+  --primary-amber-dark: #451a03;
+  --accent-amber: #d97706;
+}
+
+.flash-banner {
+  background-color: #fef3c7;
+  border-left: 4px solid var(--accent-amber);
+  color: var(--primary-amber-dark);
+  padding: 1rem;
+  max-width: 80rem;
+  margin: 1rem auto 0 auto;
+  border-radius: 0.375rem;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.hero-header {
+  position: relative;
+  background-size: cover;
+  background-position: center;
+  height: 24rem;
+  margin-top: 1rem;
+  background-image: url('https://images.unsplash.com/photo-1499636136210-6f4ee915583e?auto=format&fit=crop&w=1200&q=80');
+}
+
+.hero-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(0,0,0,0.8), rgba(0,0,0,0.6), rgba(0,0,0,0.4));
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  padding: 0 1rem;
+}
+
+.cookie-card {
+  background-color: #ffffff;
+  border-radius: 0.75rem;
+  border: 1px solid rgba(253, 230, 138, 0.6);
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.cookie-card-img {
+  width: 100%;
+  height: 10rem;
+  object-fit: cover;
+}
+
+.cookie-card-body {
+  padding: 1.25rem;
+  flex-grow: 1;
+}
+
+.btn-primary {
+  background-color: var(--primary-amber);
+  color: #ffffff;
+  font-weight: 600;
+  padding: 0.625rem 1.25rem;
+  border-radius: 0.5rem;
+  transition: background-color 0.2s ease-in-out;
+}
+
+.btn-primary:hover {
+  background-color: var(--primary-amber-dark);
+}
+.about-header {
+  text-align: center;
+  max-width: 42rem;
+  margin: 0 auto 3.5rem auto;
+}
+
+.about-header h1 {
+  font-size: 2.25rem;
+  font-weight: 900;
+  color: #451a03;
+  letter-spacing: -0.025em;
+}
+
+.about-header p {
+  color: #4b5563;
+  font-size: 1.125rem;
+  margin-top: 0.75rem;
+}
+
+.badge-est {
+  position: absolute;
+  bottom: -1rem;
+  right: -1rem;
+  background-color: #78350f;
+  color: #fffbe3;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  font-family: monospace;
+  font-size: 0.75rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.section-tag {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #92400e;
+}
+
+.baking-banner {
+  background-color: #78350f;
+  color: #fffbe3;
+  border-radius: 0.75rem;
+  padding: 2rem;
+  margin-bottom: 4rem;
+  box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.06);
+}
+
+.rule-card {
+  background-color: #ffffff;
+  border-radius: 0.75rem;
+  border: 1px solid rgba(253, 230, 138, 0.6);
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.rule-card-img {
+  width: 100%;
+  height: 10rem;
+  object-fit: cover;
+}
+
+.rule-card-body {
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  flex-grow: 1;
+}
+
+.location-card {
+  background-color: #ffffff;
+  border-radius: 1rem;
+  border: 1px solid rgba(253, 230, 138, 0.8);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  padding: 1.5rem;
+  margin-bottom: 3rem;
+}
