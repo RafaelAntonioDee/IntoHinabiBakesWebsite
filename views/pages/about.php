@@ -1,5 +1,3 @@
-<?php include 'header.php'; ?>
-
 <main class="max-w-5xl mx-auto px-4 py-12 flex-grow">
     <div class="text-center max-w-2xl mx-auto mb-14 space-y-3">
         <h1 class="text-4xl font-black text-amber-950 tracking-tight">Behind the Oven</h1>
@@ -88,7 +86,7 @@
                 </div>
 
                 <div class="pt-2">
-                    <a href="contact.php" class="inline-block bg-amber-800 hover:bg-amber-900 text-white font-semibold text-xs px-5 py-2.5 rounded-lg shadow transition">
+                    <a href="<?= url('/contact') ?>" class="inline-block bg-amber-800 hover:bg-amber-900 text-white font-semibold text-xs px-5 py-2.5 rounded-lg shadow transition">
                         Get Directions & Contact Us
                     </a>
                 </div>
@@ -96,5 +94,3 @@
         </div>
     </div>
 </main>
-
-<?php include 'footer.php'; ?>
