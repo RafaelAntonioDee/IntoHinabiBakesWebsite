@@ -14,6 +14,9 @@ use App\Controllers\AboutController;
 use App\Controllers\ContactController;
 use App\Controllers\AuthController;
 use App\Controllers\ProfileController;
+use App\Controllers\CartController;
+use App\Controllers\CheckoutController;
+use App\Controllers\OrderController;
 
 // 2. Initialize Router
 $router = new Router();
@@ -33,5 +36,22 @@ $router->post('/register', [AuthController::class, 'register']);
 $router->get('/logout', [AuthController::class, 'logout']);
 $router->get('/profile', [ProfileController::class, 'index']);
 
-// 5. Dispatch Request
+// 5. Cart Routes
+$router->get('/cart', [CartController::class, 'index']);
+$router->post('/cart/add', [CartController::class, 'add']);
+$router->post('/cart/update', [CartController::class, 'update']);
+$router->post('/cart/remove', [CartController::class, 'remove']);
+$router->post('/cart/clear', [CartController::class, 'clear']);
+$router->get('/cart/json', [CartController::class, 'getCartJson']);
+
+// 6. Checkout Routes
+$router->get('/checkout', [CheckoutController::class, 'index']);
+$router->post('/checkout', [CheckoutController::class, 'placeOrder']);
+
+// 7. Order Routes
+$router->get('/orders', [OrderController::class, 'index']);
+$router->get('/orders/show', [OrderController::class, 'show']);
+$router->post('/orders/cancel', [OrderController::class, 'cancel']);
+
+// 8. Dispatch Request
 $router->dispatch();
