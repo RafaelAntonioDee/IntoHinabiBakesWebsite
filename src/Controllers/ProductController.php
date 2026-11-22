@@ -9,10 +9,12 @@ class ProductController extends Controller {
     public function index(): void {
         $productModel = new Product();
         $products = $productModel->all();
+        $categories = $productModel->getCategories();
 
         $this->view('pages/products', [
-            'pageTitle' => 'Cookies & Treats - Sweet Cookie Oven',
-            'products'  => $products,
+            'pageTitle'  => 'Cookies & Cakes Menu - Into Hinabi Bakes',
+            'products'   => $products,
+            'categories' => $categories,
         ]);
     }
 }

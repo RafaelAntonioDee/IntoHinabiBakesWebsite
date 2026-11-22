@@ -117,17 +117,46 @@ class Product extends Model {
     public function all(): array {
         if ($this->db !== null) {
             try {
-                $stmt = $this->db->query("SELECT * FROM products WHERE is_active = TRUE ORDER BY id ASC");
+                $sql = "SELECT p.*, 
+                               COALESCE(LOWER(TRIM(pc.category_name)), 'cookies') AS category,
+                               COALESCE(TRIM(pc.category_name), 'Cookies') AS category_name
+                        FROM products p
+                        LEFT JOIN product_categories pc ON p.category_id = pc.id
+                        WHERE p.is_active = TRUE
+                        ORDER BY p.category_id ASC, p.id ASC";
+                $stmt = $this->db->query($sql);
                 $rows = $stmt->fetchAll();
                 if (!empty($rows)) {
                     return $rows;
                 }
             } catch (PDOException $e) {
-                // Table doesn't exist yet or DB not populated, return default array safely
+                // Fallback to default if query fails
             }
         }
 
         return $this->defaultProducts;
+    }
+
+    /**
+     * Retrieve all categories directly from product_categories table
+     */
+    public function getCategories(): array {
+        if ($this->db !== null) {
+            try {
+                $stmt = $this->db->query("SELECT id, TRIM(category_name) AS category_name FROM product_categories ORDER BY id ASC");
+                $rows = $stmt->fetchAll();
+                if (!empty($rows)) {
+                    return $rows;
+                }
+            } catch (PDOException $e) {
+                // Fallback if table query fails
+            }
+        }
+
+        return [
+            ['id' => 1, 'category_name' => 'Cookies'],
+            ['id' => 2, 'category_name' => 'Cakes'],
+        ];
     }
 
     /**
