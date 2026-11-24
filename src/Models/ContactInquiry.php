@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Core\Model;
+use PDOException;
 
 class ContactInquiry extends Model {
     /**
@@ -15,5 +16,29 @@ class ContactInquiry extends Model {
             ':email'   => $email,
             ':message' => $message,
         ]);
+    }
+
+    /**
+     * Get all contact inquiries
+     */
+    public function getAll(int $limit = 50): array {
+        try {
+            $stmt = $this->getDb()->query("SELECT * FROM contact_inquiries ORDER BY id DESC LIMIT " . (int)$limit);
+            return $stmt->fetchAll() ?: [];
+        } catch (PDOException $e) {
+            return [];
+        }
+    }
+
+    /**
+     * Count total inquiries
+     */
+    public function count(): int {
+        try {
+            $stmt = $this->getDb()->query("SELECT COUNT(*) FROM contact_inquiries");
+            return (int)$stmt->fetchColumn();
+        } catch (PDOException $e) {
+            return 0;
+        }
     }
 }

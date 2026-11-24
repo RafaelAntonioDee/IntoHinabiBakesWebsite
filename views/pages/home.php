@@ -1,18 +1,4 @@
 <main class="flex-grow">
-    <?php if (!empty($isLoggedIn)): ?>
-        <div class="bg-amber-100 border-b border-amber-200/80 px-6 py-3">
-            <div class="max-w-7xl mx-auto flex items-center justify-between text-sm">
-                <div class="flex items-center space-x-2 text-amber-950 font-medium">
-                    <span>👋</span>
-                    <span>Welcome back, <strong class="font-bold"><?= e($userName) ?></strong>! Ready for fresh bakes today?</span>
-                </div>
-                <a href="<?= url('/products') ?>" class="text-amber-900 underline hover:text-amber-950 font-semibold text-xs">
-                    Browse Today's Batch →
-                </a>
-            </div>
-        </div>
-    <?php endif; ?>
-
     <section class="relative bg-amber-950 text-white overflow-hidden py-20 md:py-28">
         <div class="absolute inset-0 z-0 opacity-40">
             <img src="https://images.unsplash.com/photo-1558961363-fa8fdf82db35?auto=format&fit=crop&w=1600&q=80" alt="Freshly baked cookies" class="w-full h-full object-cover">
