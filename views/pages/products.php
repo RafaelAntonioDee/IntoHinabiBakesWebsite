@@ -97,11 +97,28 @@
 
                 <!-- Card Body -->
                 <div class="p-6 flex flex-col flex-grow">
-                    <div class="flex justify-between items-start mb-2 gap-2">
+                    <div class="flex justify-between items-start mb-1 gap-2">
                         <h3 class="text-xl font-bold text-gray-900 group-hover:text-amber-900 transition-colors"><?= e($item['name']) ?></h3>
                         <span class="text-xs uppercase tracking-wider font-semibold px-2 py-0.5 rounded flex-shrink-0 <?= ($catId == 2) ? 'bg-rose-100 text-rose-800' : 'bg-amber-100 text-amber-800' ?>">
                             <?= e($catName) ?>
                         </span>
+                    </div>
+
+                    <!-- Live Backend Rating Preview -->
+                    <div class="flex items-center gap-1.5 mb-2.5 text-xs">
+                        <template x-if="reviewsData[<?= $itemId ?>] && reviewsData[<?= $itemId ?>].total_count > 0">
+                            <div class="flex items-center gap-1.5 text-amber-800 font-semibold">
+                                <svg class="w-3.5 h-3.5 fill-amber-800 text-amber-800" viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+                                <span x-text="reviewsData[<?= $itemId ?>].average_rating"></span>
+                                <span class="text-gray-400 font-normal text-[11px]" x-text="'(' + reviewsData[<?= $itemId ?>].total_count + ')'"></span>
+                            </div>
+                        </template>
+                        <template x-if="!reviewsData[<?= $itemId ?>] || reviewsData[<?= $itemId ?>].total_count === 0">
+                            <span class="text-stone-400 text-[11px] font-medium flex items-center gap-1">
+                                <svg class="w-3 h-3 text-stone-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.61l-4.725-2.885a.563.563 0 00-.586 0L6.982 20.54a.562.562 0 01-.84-.61l1.285-5.386a.562.562 0 00-.182-.557l-4.204-3.602a.563.563 0 01.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z"/></svg>
+                                No ratings yet
+                            </span>
+                        </template>
                     </div>
 
                     <p class="text-gray-600 mb-4 flex-grow text-sm line-clamp-2 leading-relaxed">
@@ -267,7 +284,7 @@
                     </div>
                 </div>
 
-                <!-- Right Column: Review This Product Part (Image 1 Style) -->
+                <!-- Right Column: Review This Product Part (Image 1 Style - Connected to Backend) -->
                 <div class="w-full md:w-1/2 flex flex-col p-6 sm:p-7 overflow-y-auto bg-amber-50/20">
                     <!-- Google Play Style Ratings & Reviews Header -->
                     <div class="mb-4">
@@ -280,72 +297,61 @@
                             </span>
                         </div>
 
-                        <!-- Rating Overview Dashboard -->
+                        <!-- Real Backend Rating Overview Dashboard -->
                         <div class="flex items-center gap-6 pb-4 border-b border-gray-200/80">
-                            <!-- Big Rating Number and Stars -->
+                            <!-- Real Average Rating and Dynamic Stars -->
                             <div class="text-left flex-shrink-0">
-                                <div class="text-5xl font-black text-gray-900 tracking-tight leading-none">4.4</div>
+                                <div class="text-5xl font-black text-gray-900 tracking-tight leading-none" x-text="getSummary().total_count > 0 ? getSummary().average_rating : '0.0'"></div>
                                 <div class="flex items-center gap-0.5 mt-2 text-amber-800">
-                                    <svg class="w-4 h-4 fill-amber-800 text-amber-800" viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
-                                    <svg class="w-4 h-4 fill-amber-800 text-amber-800" viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
-                                    <svg class="w-4 h-4 fill-amber-800 text-amber-800" viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
-                                    <svg class="w-4 h-4 fill-amber-800 text-amber-800" viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
-                                    <!-- Half-filled/shaded 5th star -->
-                                    <svg class="w-4 h-4 text-amber-800" viewBox="0 0 24 24">
-                                        <defs>
-                                            <linearGradient id="halfStarGrad">
-                                                <stop offset="50%" stop-color="#78350f"/>
-                                                <stop offset="50%" stop-color="#d1d5db"/>
-                                            </linearGradient>
-                                        </defs>
-                                        <path fill="url(#halfStarGrad)" d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
-                                    </svg>
+                                    <template x-for="s in 5" :key="s">
+                                        <svg 
+                                            class="w-4 h-4" 
+                                            :class="getSummary().total_count > 0 && s <= Math.round(parseFloat(getSummary().average_rating)) ? 'fill-amber-800 text-amber-800' : 'text-gray-300 fill-none stroke-current'" 
+                                            viewBox="0 0 24 24"
+                                            stroke-width="1.5"
+                                        >
+                                            <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
+                                        </svg>
+                                    </template>
                                 </div>
-                                <div class="text-[11px] text-gray-500 mt-1 font-medium">9,693,354</div>
+                                <div class="text-[11px] text-gray-500 mt-1 font-medium" x-text="getSummary().total_count > 0 ? (getSummary().total_count + ' ' + (getSummary().total_count === 1 ? 'rating' : 'ratings')) : 'No ratings yet'"></div>
                             </div>
 
-                            <!-- Rating Distribution Bars (5 down to 1) -->
+                            <!-- Real Backend Rating Distribution Progress Bars (5 down to 1) -->
                             <div class="flex-grow space-y-1.5">
-                                <div class="flex items-center gap-2.5 text-xs text-gray-600 font-medium">
-                                    <span class="w-2.5 text-right text-gray-700">5</span>
-                                    <div class="flex-grow h-2.5 bg-gray-200 rounded-full overflow-hidden">
-                                        <div class="h-full bg-amber-800 rounded-full" style="width: 78%;"></div>
+                                <template x-for="s in [5, 4, 3, 2, 1]" :key="s">
+                                    <div class="flex items-center gap-2.5 text-xs text-gray-600 font-medium">
+                                        <span class="w-2.5 text-right text-gray-700" x-text="s"></span>
+                                        <div class="flex-grow h-2.5 bg-gray-200 rounded-full overflow-hidden">
+                                            <div 
+                                                class="h-full bg-amber-800 rounded-full transition-all duration-300" 
+                                                :style="'width: ' + (getSummary().stars && getSummary().stars[s] ? getSummary().stars[s].pct : 0) + '%;'"
+                                            ></div>
+                                        </div>
+                                        <span class="w-5 text-[10px] text-gray-400 text-right" x-text="getSummary().stars && getSummary().stars[s] ? getSummary().stars[s].count : 0"></span>
                                     </div>
-                                </div>
-                                <div class="flex items-center gap-2.5 text-xs text-gray-600 font-medium">
-                                    <span class="w-2.5 text-right text-gray-700">4</span>
-                                    <div class="flex-grow h-2.5 bg-gray-200 rounded-full overflow-hidden">
-                                        <div class="h-full bg-amber-800 rounded-full" style="width: 14%;"></div>
-                                    </div>
-                                </div>
-                                <div class="flex items-center gap-2.5 text-xs text-gray-600 font-medium">
-                                    <span class="w-2.5 text-right text-gray-700">3</span>
-                                    <div class="flex-grow h-2.5 bg-gray-200 rounded-full overflow-hidden">
-                                        <div class="h-full bg-amber-800 rounded-full" style="width: 7%;"></div>
-                                    </div>
-                                </div>
-                                <div class="flex items-center gap-2.5 text-xs text-gray-600 font-medium">
-                                    <span class="w-2.5 text-right text-gray-700">2</span>
-                                    <div class="flex-grow h-2.5 bg-gray-200 rounded-full overflow-hidden">
-                                        <div class="h-full bg-amber-800 rounded-full" style="width: 5%;"></div>
-                                    </div>
-                                </div>
-                                <div class="flex items-center gap-2.5 text-xs text-gray-600 font-medium">
-                                    <span class="w-2.5 text-right text-gray-700">1</span>
-                                    <div class="flex-grow h-2.5 bg-gray-200 rounded-full overflow-hidden">
-                                        <div class="h-full bg-amber-800 rounded-full" style="width: 12%;"></div>
-                                    </div>
-                                </div>
+                                </template>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Community Reviews List -->
+                    <!-- Community Reviews List (from Backend) -->
                     <div class="space-y-3 flex-grow overflow-y-auto pr-1 max-h-44 mb-5">
+                        <template x-if="getReviews().length === 0">
+                            <div class="text-center py-6 text-xs text-gray-500">
+                                No reviews yet. Be the first to share your experience with this treat!
+                            </div>
+                        </template>
+
                         <template x-for="(rev, idx) in getReviews()" :key="idx">
                             <div class="bg-white p-3.5 rounded-xl border border-amber-100/80 shadow-xs space-y-1.5">
                                 <div class="flex items-center justify-between">
-                                    <span class="font-bold text-xs text-amber-950" x-text="rev.name"></span>
+                                    <span class="font-bold text-xs text-amber-950 flex items-center gap-1.5">
+                                        <span x-text="rev.name"></span>
+                                        <template x-if="loggedInUser && rev.name === loggedInUser">
+                                            <span class="text-[10px] bg-amber-100 text-amber-900 font-semibold px-1.5 py-0.2 rounded">You</span>
+                                        </template>
+                                    </span>
                                     <span class="text-[11px] text-gray-400" x-text="rev.date"></span>
                                 </div>
                                 <div class="flex items-center gap-0.5">
@@ -365,63 +371,84 @@
                         </template>
                     </div>
 
-                    <!-- Experience Submission Form (Name input removed, auto-uses login) -->
-                    <div class="mt-auto pt-4 border-t border-amber-200/60 space-y-3">
-                        <div class="flex items-center justify-between">
-                            <div>
-                                <span class="text-sm font-bold text-amber-950 block">Review this product</span>
-                                <span class="text-[11px] text-gray-500" x-text="loggedInUser ? 'Reviewing as ' + loggedInUser : 'Logged in as Customer'"></span>
-                            </div>
-                            <!-- Interactive Star Selection -->
-                            <div class="flex items-center gap-1">
-                                <template x-for="star in 5" :key="star">
-                                    <button 
-                                        type="button" 
-                                        @click="userRating = star"
-                                        @mouseenter="hoverRating = star"
-                                        @mouseleave="hoverRating = 0"
-                                        class="p-0.5 focus:outline-none transition-transform hover:scale-110 cursor-pointer"
-                                        :aria-label="'Rate ' + star + ' stars'"
-                                    >
-                                        <svg 
-                                            class="w-5 h-5 transition-colors"
-                                            :class="(hoverRating || userRating) >= star ? 'text-amber-800 fill-amber-800' : 'text-gray-300 fill-none stroke-current'"
-                                            viewBox="0 0 24 24" 
-                                            stroke-width="1.5"
+                    <!-- Experience Submission Section -->
+                    <template x-if="isLoggedIn">
+                        <div class="mt-auto pt-4 border-t border-amber-200/60 space-y-3">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <span class="text-sm font-bold text-amber-950 block" x-text="getSummary().user_review ? 'Update your review' : 'Review this product'"></span>
+                                    <span class="text-[11px] text-gray-500" x-text="'Posting as ' + (loggedInUser || 'Verified Customer')"></span>
+                                </div>
+                                <!-- Interactive Star Selection -->
+                                <div class="flex items-center gap-1">
+                                    <template x-for="star in 5" :key="star">
+                                        <button 
+                                            type="button" 
+                                            @click="userRating = star"
+                                            @mouseenter="hoverRating = star"
+                                            @mouseleave="hoverRating = 0"
+                                            class="p-0.5 focus:outline-none transition-transform hover:scale-110 cursor-pointer"
+                                            :aria-label="'Rate ' + star + ' stars'"
                                         >
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.61l-4.725-2.885a.563.563 0 00-.586 0L6.982 20.54a.562.562 0 01-.84-.61l1.285-5.386a.562.562 0 00-.182-.557l-4.204-3.602a.563.563 0 01.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z" />
-                                        </svg>
-                                    </button>
-                                </template>
+                                            <svg 
+                                                class="w-5 h-5 transition-colors"
+                                                :class="(hoverRating || userRating) >= star ? 'text-amber-800 fill-amber-800' : 'text-gray-300 fill-none stroke-current'"
+                                                viewBox="0 0 24 24" 
+                                                stroke-width="1.5"
+                                            >
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.61l-4.725-2.885a.563.563 0 00-.586 0L6.982 20.54a.562.562 0 01-.84-.61l1.285-5.386a.562.562 0 00-.182-.557l-4.204-3.602a.563.563 0 01.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z" />
+                                            </svg>
+                                        </button>
+                                    </template>
+                                </div>
+                            </div>
+
+                            <!-- Experience Submission Textarea -->
+                            <textarea 
+                                x-model="reviewComment" 
+                                rows="2" 
+                                placeholder="Share your experience with this flavor..."
+                                class="w-full px-3.5 py-2.5 text-xs border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-800 focus:border-amber-800 bg-white transition"
+                            ></textarea>
+
+                            <!-- Submit Review Button -->
+                            <button 
+                                type="button" 
+                                @click="submitReview()" 
+                                :disabled="!reviewComment.trim() || isSubmitting" 
+                                class="w-full bg-amber-800 hover:bg-amber-900 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-2.5 px-4 rounded-xl shadow text-xs transition duration-150 cursor-pointer flex items-center justify-center gap-2"
+                            >
+                                <span x-text="isSubmitting ? 'Saving...' : (getSummary().user_review ? 'Update Review' : 'Submit Review')"></span>
+                            </button>
+
+                            <div 
+                                x-show="reviewSubmitted" 
+                                x-transition 
+                                class="p-2.5 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-lg text-xs font-medium text-center"
+                            >
+                                Thank you! Your review has been saved to the bakery records.
                             </div>
                         </div>
+                    </template>
 
-                        <!-- Experience Submission Textarea -->
-                        <textarea 
-                            x-model="reviewComment" 
-                            rows="2" 
-                            placeholder="Share your experience with this flavor..."
-                            class="w-full px-3.5 py-2.5 text-xs border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-800 focus:border-amber-800 bg-white transition"
-                        ></textarea>
-
-                        <!-- Submit Review Button -->
-                        <button 
-                            type="button" 
-                            @click="submitReview()" 
-                            :disabled="!reviewComment.trim()" 
-                            class="w-full bg-amber-800 hover:bg-amber-900 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-2.5 px-4 rounded-xl shadow text-xs transition duration-150 cursor-pointer"
-                        >
-                            Submit Review
-                        </button>
-
-                        <div 
-                            x-show="reviewSubmitted" 
-                            x-transition 
-                            class="p-2.5 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-lg text-xs font-medium text-center"
-                        >
-                            Thank you! Your experience has been submitted.
+                    <!-- Friendly Sign-in Prompt for Non-Logged-in Visitors -->
+                    <template x-if="!isLoggedIn">
+                        <div class="mt-auto pt-4 border-t border-amber-200/60">
+                            <div class="p-4 rounded-xl bg-amber-50/70 border border-amber-200/80 text-center space-y-2">
+                                <div class="text-xs font-bold text-amber-950">Want to rate or review this treat?</div>
+                                <p class="text-xs text-stone-600">Please sign in to your account to share your experience with our bakery.</p>
+                                <div class="pt-1 flex items-center justify-center gap-3">
+                                    <a href="<?= url('/login') ?>" class="inline-flex items-center gap-1.5 bg-amber-800 hover:bg-amber-900 text-white px-4 py-2 rounded-lg font-semibold text-xs transition shadow-sm">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75"/></svg>
+                                        Log In to Review
+                                    </a>
+                                    <a href="<?= url('/register') ?>" class="text-xs font-semibold text-amber-800 hover:text-amber-950 underline underline-offset-2">
+                                        Create Account
+                                    </a>
+                                </div>
+                            </div>
                         </div>
-                    </div>
+                    </template>
                 </div>
             </div>
         </div>
@@ -438,24 +465,50 @@ function productCatalog() {
         isLoggedIn: <?= json_encode($isLoggedIn) ?>,
         reviewComment: '',
         reviewSubmitted: false,
+        isSubmitting: false,
         productsMap: <?= json_encode($productsMap, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP) ?>,
-        productReviews: {},
+        reviewsData: <?= json_encode($reviewsData ?? [], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP) ?>,
+
+        getSummary() {
+            if (!this.activeProduct) {
+                return {
+                    total_count: 0,
+                    average_rating: '0.0',
+                    user_review: null,
+                    stars: { 5: { count: 0, pct: 0 }, 4: { count: 0, pct: 0 }, 3: { count: 0, pct: 0 }, 2: { count: 0, pct: 0 }, 1: { count: 0, pct: 0 } },
+                    reviews: []
+                };
+            }
+            const data = this.reviewsData[this.activeProduct.id];
+            if (data) {
+                return data;
+            }
+            return {
+                total_count: 0,
+                average_rating: '0.0',
+                user_review: null,
+                stars: { 5: { count: 0, pct: 0 }, 4: { count: 0, pct: 0 }, 3: { count: 0, pct: 0 }, 2: { count: 0, pct: 0 }, 1: { count: 0, pct: 0 } },
+                reviews: []
+            };
+        },
 
         getReviews() {
-            if (!this.activeProduct) return [];
-            return this.productReviews[this.activeProduct.id] || [
-                { name: 'Sarah M.', rating: 5, date: '2 days ago', comment: 'Absolutely melted in my mouth! You can tell it was baked fresh this morning.' },
-                { name: 'David L.', rating: 5, date: '1 week ago', comment: 'The texture is incredible, crispy edges with a soft, rich center. Will definitely order again.' }
-            ];
+            return this.getSummary().reviews || [];
         },
 
         openModal(productId) {
             const product = this.productsMap[productId] || null;
             if (!product) return;
             this.activeProduct = product;
-            this.userRating = 5;
+            const summary = this.getSummary();
+            if (summary && summary.user_review) {
+                this.userRating = summary.user_review.rating || 5;
+                this.reviewComment = summary.user_review.comment || '';
+            } else {
+                this.userRating = 5;
+                this.reviewComment = '';
+            }
             this.hoverRating = 0;
-            this.reviewComment = '';
             this.reviewSubmitted = false;
             document.body.classList.add('overflow-hidden');
         },
@@ -465,24 +518,43 @@ function productCatalog() {
             document.body.classList.remove('overflow-hidden');
         },
 
-        submitReview() {
-            if (!this.reviewComment.trim() || !this.activeProduct) return;
-            const author = (this.loggedInUser && this.loggedInUser.trim()) ? this.loggedInUser : 'Verified Customer';
-            if (!this.productReviews[this.activeProduct.id]) {
-                this.productReviews[this.activeProduct.id] = [
-                    { name: 'Sarah M.', rating: 5, date: '2 days ago', comment: 'Absolutely melted in my mouth! You can tell it was baked fresh this morning.' },
-                    { name: 'David L.', rating: 5, date: '1 week ago', comment: 'The texture is incredible, crispy edges with a soft, rich center. Will definitely order again.' }
-                ];
+        async submitReview() {
+            if (!this.isLoggedIn) {
+                window.location.href = '<?= url('/login') ?>';
+                return;
             }
-            this.productReviews[this.activeProduct.id].unshift({
-                name: author,
-                rating: this.userRating,
-                date: 'Just now',
-                comment: this.reviewComment.trim()
-            });
-            this.reviewComment = '';
-            this.reviewSubmitted = true;
-            setTimeout(() => { this.reviewSubmitted = false; }, 4000);
+            if (!this.reviewComment.trim() || !this.activeProduct || this.isSubmitting) return;
+            this.isSubmitting = true;
+
+            try {
+                const response = await fetch('<?= url('/products/review') ?>', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        product_id: this.activeProduct.id,
+                        rating: this.userRating,
+                        comment: this.reviewComment.trim()
+                    })
+                });
+
+                const res = await response.json();
+                if (res.success && res.data) {
+                    this.reviewsData[this.activeProduct.id] = res.data;
+                    this.reviewSubmitted = true;
+                    setTimeout(() => { this.reviewSubmitted = false; }, 4000);
+                } else if (res.requires_login) {
+                    window.location.href = '<?= url('/login') ?>';
+                } else {
+                    alert(res.error || 'Failed to submit review.');
+                }
+            } catch (err) {
+                console.error('Review submission failed:', err);
+            } finally {
+                this.isSubmitting = false;
+            }
         }
     };
 }

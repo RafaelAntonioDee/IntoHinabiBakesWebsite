@@ -23,6 +23,7 @@ $router = new Router();
 // 3. Define Public Routes
 $router->get('/', [HomeController::class, 'index']);
 $router->get('/products', [ProductController::class, 'index']);
+$router->post('/products/review', [ProductController::class, 'submitReview']);
 $router->get('/about', [AboutController::class, 'index']);
 $router->get('/contact', [ContactController::class, 'index']);
 $router->post('/contact', [ContactController::class, 'submit']);
