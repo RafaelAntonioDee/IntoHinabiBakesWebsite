@@ -26,24 +26,37 @@
     <section class="max-w-7xl mx-auto px-6 py-16 md:py-20">
         <div class="grid md:grid-cols-3 gap-8 text-center">
             
-            <div class="bg-white p-8 rounded-2xl border border-amber-100 shadow-sm hover:shadow-md transition">
-                <div class="text-4xl mb-4">🍪</div>
+            <div class="bg-white p-8 rounded-2xl border border-amber-100 shadow-sm hover:shadow-md transition flex flex-col items-center">
+                <div class="w-14 h-14 bg-amber-100 text-amber-800 rounded-2xl flex items-center justify-center mb-4 shadow-sm">
+                    <svg class="w-7 h-7" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24">
+                        <circle cx="12" cy="12" r="9"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M8.5 9h.01M15.5 9h.01M12 13h.01M9 15.5h.01M14.5 15h.01"/>
+                    </svg>
+                </div>
                 <h3 class="text-xl font-bold text-amber-950 mb-2">Classic Warm Cookies</h3>
                 <p class="text-gray-600 text-sm leading-relaxed">
                     Golden-brown chocolate chip, oatmeal raisin, and double chocolate chunk cookies baked fresh hourly.
                 </p>
             </div>
 
-            <div class="bg-white p-8 rounded-2xl border border-amber-100 shadow-sm hover:shadow-md transition">
-                <div class="text-4xl mb-4">🧁</div>
+            <div class="bg-white p-8 rounded-2xl border border-amber-100 shadow-sm hover:shadow-md transition flex flex-col items-center">
+                <div class="w-14 h-14 bg-rose-100 text-rose-800 rounded-2xl flex items-center justify-center mb-4 shadow-sm">
+                    <svg class="w-7 h-7" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 8.25v-1.5m0 0A2.25 2.25 0 109.75 4.5a2.25 2.25 0 002.25 2.25zm0 0A2.25 2.25 0 1114.25 4.5 2.25 2.25 0 0112 6.75zm-7.5 7.5h15M4.5 18.75h15M3 10.5h18a1.5 1.5 0 011.5 1.5v6.75a2.25 2.25 0 01-2.25 2.25H3.75A2.25 2.25 0 011.5 18.75V12a1.5 1.5 0 011.5-1.5z"/>
+                    </svg>
+                </div>
                 <h3 class="text-xl font-bold text-amber-950 mb-2">Stuffed & Specialty</h3>
                 <p class="text-gray-600 text-sm leading-relaxed">
                     Decadent cookies stuffed with Nutella, caramel, peanut butter, and cheesecake fillings.
                 </p>
             </div>
 
-            <div class="bg-white p-8 rounded-2xl border border-amber-100 shadow-sm hover:shadow-md transition">
-                <div class="text-4xl mb-4">🎁</div>
+            <div class="bg-white p-8 rounded-2xl border border-amber-100 shadow-sm hover:shadow-md transition flex flex-col items-center">
+                <div class="w-14 h-14 bg-amber-100 text-amber-900 rounded-2xl flex items-center justify-center mb-4 shadow-sm">
+                    <svg class="w-7 h-7" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M21 11.25v8.25a1.5 1.5 0 01-1.5 1.5H4.5a1.5 1.5 0 01-1.5-1.5v-8.25M12 4.875A2.625 2.625 0 109.375 7.5H12m0-2.625V7.5m0-2.625A2.625 2.625 0 1114.625 7.5H12m0 0V21m-8.625-9.75h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z"/>
+                    </svg>
+                </div>
                 <h3 class="text-xl font-bold text-amber-950 mb-2">Cookie Boxes & Gifts</h3>
                 <p class="text-gray-600 text-sm leading-relaxed">
                     Custom cookie tins and gift boxes perfect for birthday parties, holidays, and events.
