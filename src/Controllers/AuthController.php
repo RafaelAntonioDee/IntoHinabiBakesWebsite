@@ -12,7 +12,7 @@ class AuthController extends Controller {
      */
     public function showLogin(): void {
         if (Session::check()) {
-            $this->redirect('/profile');
+            $this->redirectBasedOnRole();
             return;
         }
 
@@ -22,7 +22,7 @@ class AuthController extends Controller {
     }
 
     /**
-     * Process login submission
+     * Process login submission with Smart Role Redirection
      */
     public function login(): void {
         $email = trim($_POST['email'] ?? '');
@@ -47,10 +47,13 @@ class AuthController extends Controller {
                 return;
             }
 
-            // Success: log user into session
-            Session::login($user['id'], $user['full_name']);
-            flash('success', 'Welcome back, ' . htmlspecialchars($user['full_name']) . '!');
-            $this->redirect('/');
+            // Success: log user into session with their role
+            $roleId = (int)($user['role_id'] ?? 1);
+            $roleName = $user['role_name'] ?? 'Customer';
+            Session::login($user['id'], $user['full_name'], $roleId, $roleName);
+
+            // Smart RBAC redirection
+            $this->redirectBasedOnRole();
         } catch (\Throwable $e) {
             $errorMsg = env('APP_DEBUG', false) ? ('Database error: ' . $e->getMessage()) : $genericError;
             flash('error', $errorMsg);
@@ -63,7 +66,7 @@ class AuthController extends Controller {
      */
     public function showRegister(): void {
         if (Session::check()) {
-            $this->redirect('/profile');
+            $this->redirectBasedOnRole();
             return;
         }
 
@@ -73,7 +76,7 @@ class AuthController extends Controller {
     }
 
     /**
-     * Process registration submission
+     * Process registration submission (Default role: Customer)
      */
     public function register(): void {
         $fullName = trim($_POST['full_name'] ?? '');
@@ -110,7 +113,8 @@ class AuthController extends Controller {
             }
 
             $hashedPassword = password_hash($password, PASSWORD_BCRYPT);
-            $created = $userModel->create($fullName, $email, $hashedPassword);
+            // Default role is 1 (Customer)
+            $created = $userModel->create($fullName, $email, $hashedPassword, 1);
 
             if ($created) {
                 flash('success', 'Account created successfully! You can now log in.');
@@ -133,5 +137,18 @@ class AuthController extends Controller {
         Session::logout();
         flash('success', 'You have been logged out.');
         $this->redirect('/');
+    }
+
+    /**
+     * Helper to route users to the appropriate portal according to their RBAC role
+     */
+    private function redirectBasedOnRole(): void {
+        if (Session::isAdmin()) {
+            $this->redirect('/admin');
+        } elseif (Session::isBaker()) {
+            $this->redirect('/baker');
+        } else {
+            $this->redirect('/');
+        }
     }
 }

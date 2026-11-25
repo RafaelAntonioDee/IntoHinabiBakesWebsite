@@ -108,6 +108,34 @@ function asset($path = '') {
 }
 
 /**
+ * Get current normalized route path relative to application root
+ */
+function currentRoute() {
+    if (!empty($_GET['route'])) {
+        $trimmed = trim($_GET['route'], '/');
+        return $trimmed === '' ? '/' : '/' . $trimmed;
+    }
+    if (!empty($_GET['page'])) {
+        $trimmed = trim($_GET['page'], '/');
+        return $trimmed === '' ? '/' : '/' . $trimmed;
+    }
+
+    $requestUri = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?? '/';
+    $baseDir = getBasePath();
+
+    if ($baseDir !== '' && str_starts_with($requestUri, $baseDir)) {
+        $requestUri = substr($requestUri, strlen($baseDir));
+    }
+
+    if (str_starts_with($requestUri, '/index.php')) {
+        $requestUri = substr($requestUri, strlen('/index.php'));
+    }
+
+    $trimmed = trim($requestUri, '/');
+    return $trimmed === '' ? '/' : '/' . $trimmed;
+}
+
+/**
  * Safe string escaping
  */
 function e($value) {
