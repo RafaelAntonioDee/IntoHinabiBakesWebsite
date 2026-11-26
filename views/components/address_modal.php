@@ -5,33 +5,7 @@
  */
 
 $modalLoggedInUserId = \App\Core\Session::id();
-$modalInitialAddress = [
-    'street'   => '',
-    'barangay' => '',
-    'city'     => '',
-    'notes'    => '',
-    'lat'      => null,
-    'lng'      => null,
-];
-
-if ($modalLoggedInUserId) {
-    try {
-        $modalAddrModel = new \App\Models\Address();
-        $userSavedAddr = $modalAddrModel->getByUserId($modalLoggedInUserId);
-        if ($userSavedAddr) {
-            $modalInitialAddress = [
-                'street'   => $userSavedAddr['street_address'] ?? '',
-                'barangay' => $userSavedAddr['barangay'] ?? '',
-                'city'     => $userSavedAddr['city'] ?? '',
-                'notes'    => $userSavedAddr['delivery_notes'] ?? '',
-                'lat'      => isset($userSavedAddr['latitude']) ? (float)$userSavedAddr['latitude'] : null,
-                'lng'      => isset($userSavedAddr['longitude']) ? (float)$userSavedAddr['longitude'] : null,
-            ];
-        }
-    } catch (\Exception $e) {
-        error_log("Error loading address in modal: " . $e->getMessage());
-    }
-}
+$modalDefaultRecipient = \App\Core\Session::name() ?? '';
 ?>
 
 <!-- Leaflet.js Assets (No API Key Required) -->
@@ -59,12 +33,17 @@ if ($modalLoggedInUserId) {
 <script>
 window.modalAddressConfig = {
     isLoggedIn: <?= $modalLoggedInUserId ? 'true' : 'false' ?>,
-    initialAddress: <?= json_encode($modalInitialAddress, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP) ?>,
-    saveUrl: <?= json_encode(url('/api/address/save'), JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP) ?>
+    defaultRecipientName: <?= json_encode($modalDefaultRecipient, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP) ?>,
+    saveUrl: <?= json_encode(url('/api/address/save'), JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP) ?>,
+    loginUrl: <?= json_encode(url('/login'), JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP) ?>
 };
 
-window.openDeliveryAddressModal = function() {
-    window.dispatchEvent(new CustomEvent('open-delivery-modal'));
+window.openDeliveryAddressModal = function(addressData = null) {
+    if (!window.modalAddressConfig || !window.modalAddressConfig.isLoggedIn) {
+        window.location.href = (window.modalAddressConfig && window.modalAddressConfig.loginUrl) ? window.modalAddressConfig.loginUrl : '/login';
+        return;
+    }
+    window.dispatchEvent(new CustomEvent('open-delivery-modal', { detail: addressData }));
 };
 
 function deliveryAddressModalManager() {
@@ -75,28 +54,67 @@ function deliveryAddressModalManager() {
         isLocating: false,
         isSaving: false,
         isReverseGeocoding: false,
-        showToast: false,
-        toastMessage: '',
+        errorMessage: '',
         searchQuery: '',
 
-        lat: (config.initialAddress && config.initialAddress.lat) ? parseFloat(config.initialAddress.lat) : 14.5995,
-        lng: (config.initialAddress && config.initialAddress.lng) ? parseFloat(config.initialAddress.lng) : 120.9842,
+        lat: 14.5995,
+        lng: 120.9842,
 
         map: null,
         marker: null,
 
         form: {
-            street: (config.initialAddress && config.initialAddress.street) ? config.initialAddress.street : '',
-            barangay: (config.initialAddress && config.initialAddress.barangay) ? config.initialAddress.barangay : '',
-            city: (config.initialAddress && config.initialAddress.city) ? config.initialAddress.city : '',
-            notes: (config.initialAddress && config.initialAddress.notes) ? config.initialAddress.notes : ''
+            id: null,
+            recipient_name: config.defaultRecipientName || '',
+            street: '',
+            barangay: '',
+            city: '',
+            postal_code: '',
+            notes: '',
+            is_default: false
+        },
+
+        get isEditing() {
+            return Boolean(this.form.id);
         },
 
         get isFormValid() {
             return (this.form.street.trim().length > 0 || this.form.barangay.trim().length > 0) && this.form.city.trim().length > 0;
         },
 
-        openModal() {
+        resetForm(addressData = null) {
+            this.errorMessage = '';
+            if (addressData && typeof addressData === 'object') {
+                this.form = {
+                    id: addressData.id || null,
+                    recipient_name: addressData.recipient_name || config.defaultRecipientName || '',
+                    street: addressData.street_address || addressData.street || '',
+                    barangay: addressData.barangay || '',
+                    city: addressData.city || '',
+                    postal_code: addressData.postal_code || '',
+                    notes: addressData.delivery_notes || addressData.notes || '',
+                    is_default: Boolean(addressData.is_default)
+                };
+            } else {
+                this.form = {
+                    id: null,
+                    recipient_name: config.defaultRecipientName || '',
+                    street: '',
+                    barangay: '',
+                    city: '',
+                    postal_code: '',
+                    notes: '',
+                    is_default: false
+                };
+            }
+        },
+
+        openModal(addressData = null) {
+            if (!config.isLoggedIn) {
+                window.location.href = config.loginUrl || '/login';
+                return;
+            }
+            this.resetForm(addressData);
             this.isOpen = true;
             this.$nextTick(() => {
                 setTimeout(() => {
@@ -192,6 +210,9 @@ function deliveryAddressModalManager() {
                         if (cityOrMun) {
                             this.form.city = cityOrMun;
                         }
+                        if (addr.postcode) {
+                            this.form.postal_code = addr.postcode;
+                        }
                     }
                 })
                 .catch(err => {
@@ -216,7 +237,7 @@ function deliveryAddressModalManager() {
                         const match = results[0];
                         const newLat = parseFloat(match.lat);
                         const newLng = parseFloat(match.lon);
-                        
+
                         this.lat = newLat;
                         this.lng = newLng;
 
@@ -271,14 +292,17 @@ function deliveryAddressModalManager() {
             if (!this.isFormValid) return;
 
             this.isSaving = true;
+            this.errorMessage = '';
 
             const addressData = {
+                id: this.form.id,
+                recipient_name: this.form.recipient_name.trim(),
                 street: this.form.street.trim(),
                 barangay: this.form.barangay.trim(),
                 city: this.form.city.trim(),
+                postal_code: this.form.postal_code.trim(),
                 notes: this.form.notes.trim(),
-                lat: this.lat,
-                lng: this.lng
+                is_default: this.form.is_default
             };
 
             fetch(config.saveUrl, {
@@ -289,31 +313,29 @@ function deliveryAddressModalManager() {
                 },
                 body: JSON.stringify(addressData)
             })
-            .then(res => res.json())
+            .then(async res => {
+                const data = await res.json();
+                if (res.status === 401 || data.require_login) {
+                    window.location.href = config.loginUrl || '/login';
+                    return null;
+                }
+                return data;
+            })
             .then(data => {
+                if (!data) return;
                 if (data.success) {
-                    localStorage.setItem('hinabi_delivery_address', JSON.stringify(addressData));
-
-                    // Dispatch global event for banner and other components
-                    window.dispatchEvent(new CustomEvent('delivery-location-saved', { detail: addressData }));
-
-                    this.toastMessage = 'Delivery address successfully saved!';
-                    this.showToast = true;
-
-                    setTimeout(() => {
-                        this.closeModal();
-                        // If on profile page, reload to show newly saved address
-                        if (window.location.pathname.includes('profile')) {
-                            window.location.reload();
-                        }
-                    }, 600);
+                    window.dispatchEvent(new CustomEvent('delivery-location-saved', { detail: data.address || addressData }));
+                    this.closeModal();
+                    if (window.location.pathname.includes('profile')) {
+                        window.location.reload();
+                    }
                 } else {
-                    alert(data.error || 'Failed to save address.');
+                    this.errorMessage = data.error || 'Failed to save address.';
                 }
             })
             .catch(err => {
                 console.error('Save error:', err);
-                alert('Could not connect to server. Please check your connection.');
+                this.errorMessage = 'Could not connect to server. Please check your connection.';
             })
             .finally(() => {
                 this.isSaving = false;
@@ -325,7 +347,7 @@ function deliveryAddressModalManager() {
 
 <div 
     x-data="deliveryAddressModalManager()"
-    @open-delivery-modal.window="openModal()"
+    @open-delivery-modal.window="openModal($event.detail)"
     class="relative z-[70]"
 >
     <!-- Modal Dialog -->
@@ -373,7 +395,7 @@ function deliveryAddressModalManager() {
                             </svg>
                         </div>
                         <div>
-                            <h3 class="text-lg font-bold text-amber-950" id="modal-title">Pin Your Delivery Address</h3>
+                            <h3 class="text-lg font-bold text-amber-950" id="modal-title" x-text="isEditing ? 'Edit Delivery Address' : 'Pin Your Delivery Address'"></h3>
                             <p class="text-xs text-amber-800/80">Drag the pin or click on the map to pinpoint your exact doorstep.</p>
                         </div>
                     </div>
@@ -391,6 +413,10 @@ function deliveryAddressModalManager() {
                 <!-- Modal Body -->
                 <div class="p-5 sm:p-6 space-y-4 max-h-[calc(85vh-120px)] overflow-y-auto">
                     
+                    <div x-show="errorMessage" x-cloak class="p-3 bg-rose-50 border border-rose-200 text-rose-700 rounded-xl text-xs font-medium">
+                        <span x-text="errorMessage"></span>
+                    </div>
+
                     <!-- Search & GPS -->
                     <div class="flex flex-col sm:flex-row gap-2">
                         <div class="relative flex-1">
@@ -435,20 +461,28 @@ function deliveryAddressModalManager() {
 
                     <!-- Map Container -->
                     <div class="relative rounded-xl overflow-hidden border-2 border-amber-200/90 shadow-inner delivery-map-container">
-                        <div id="hinabi-delivery-map-modal" class="w-full h-56 sm:h-72 bg-amber-50"></div>
+                        <div id="hinabi-delivery-map-modal" class="w-full h-56 sm:h-64 bg-amber-50"></div>
                         
                         <div class="absolute top-2 left-2 z-30 bg-white/95 backdrop-blur-xs text-amber-950 text-[11px] font-medium px-2.5 py-1 rounded-md shadow border border-amber-100 flex items-center gap-1.5 pointer-events-none">
                             <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
                             <span>Click map or drag pin to position</span>
                         </div>
-
-                        <div class="absolute bottom-2 right-2 z-30 bg-amber-950/80 text-amber-100 text-[10px] px-2 py-0.5 rounded font-mono shadow pointer-events-none">
-                            <span x-text="lat ? lat.toFixed(5) + ', ' + lng.toFixed(5) : '14.5995, 120.9842'"></span>
-                        </div>
                     </div>
 
                     <!-- Form Inputs -->
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                        <div class="sm:col-span-2">
+                            <label class="block text-xs font-semibold text-amber-950 mb-1">
+                                Recipient Name
+                            </label>
+                            <input 
+                                type="text" 
+                                x-model="form.recipient_name" 
+                                placeholder="e.g. Juan Dela Cruz"
+                                class="w-full px-3.5 py-2 text-sm bg-gray-50 border border-gray-300 rounded-lg focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-700 focus:border-amber-700 transition"
+                            />
+                        </div>
+
                         <div class="sm:col-span-2">
                             <label class="block text-xs font-semibold text-amber-950 mb-1">
                                 Street Address / Unit / House No. <span class="text-rose-500">*</span>
@@ -488,16 +522,40 @@ function deliveryAddressModalManager() {
                             />
                         </div>
 
-                        <div class="sm:col-span-2">
+                        <div>
                             <label class="block text-xs font-semibold text-amber-950 mb-1">
-                                Landmarks / Delivery Instructions <span class="text-xs font-normal text-gray-500">(Optional)</span>
+                                Postal Code <span class="text-xs font-normal text-gray-500">(Optional)</span>
+                            </label>
+                            <input 
+                                type="text" 
+                                x-model="form.postal_code" 
+                                placeholder="e.g. 1105"
+                                class="w-full px-3.5 py-2 text-sm bg-gray-50 border border-gray-300 rounded-lg focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-700 focus:border-amber-700 transition"
+                            />
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-semibold text-amber-950 mb-1">
+                                Landmarks / Delivery Notes <span class="text-xs font-normal text-gray-500">(Optional)</span>
                             </label>
                             <input 
                                 type="text" 
                                 x-model="form.notes" 
-                                placeholder="e.g. Beside 7-Eleven, please call upon arrival"
+                                placeholder="e.g. Beside 7-Eleven, call upon arrival"
                                 class="w-full px-3.5 py-2 text-sm bg-gray-50 border border-gray-300 rounded-lg focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-700 focus:border-amber-700 transition"
                             />
+                        </div>
+
+                        <div class="sm:col-span-2 flex items-center gap-2 pt-1">
+                            <input 
+                                id="modal-is-default"
+                                type="checkbox" 
+                                x-model="form.is_default"
+                                class="w-4 h-4 text-amber-800 border-gray-300 rounded focus:ring-amber-700 cursor-pointer"
+                            />
+                            <label for="modal-is-default" class="text-xs font-medium text-amber-950 cursor-pointer">
+                                Set as default delivery address
+                            </label>
                         </div>
                     </div>
 
@@ -527,7 +585,7 @@ function deliveryAddressModalManager() {
                             <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/>
                         </svg>
                         <span x-show="isSaving" class="inline-block animate-spin text-sm">⌛</span>
-                        <span x-text="isSaving ? 'Saving Address...' : 'Confirm & Save Location'"></span>
+                        <span x-text="isSaving ? 'Saving Address...' : (isEditing ? 'Update Address' : 'Confirm & Save Location')"></span>
                     </button>
                 </div>
             </div>

@@ -11,6 +11,10 @@
             <input type="email" id="email" name="email" required class="w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-amber-600 focus:outline-none">
         </div>
         <div>
+            <label class="block text-gray-700 font-medium mb-2" for="phone_number">Phone Number</label>
+            <input type="tel" id="phone_number" name="phone_number" inputmode="tel" minlength="10" maxlength="16" pattern="(09[\d\s\-]{9,12}|(\+?63)9[\d\s\-]{9,12}|0[2-8][\d\s\-()]{7,12})" title="Enter a valid PH mobile (11 digits, e.g. 09171234567 or +639171234567) or landline number" required placeholder="e.g. 0917 123 4567" class="w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-amber-600 focus:outline-none">
+        </div>
+        <div>
             <label class="block text-gray-700 font-medium mb-2" for="password">Password (min 6 characters)</label>
             <input type="password" id="password" name="password" minlength="6" required class="w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-amber-600 focus:outline-none">
         </div>

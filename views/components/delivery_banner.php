@@ -2,22 +2,24 @@
 /**
  * Delivery Address Confirmation Banner
  * Attached to Sticky Navbar
- * Theme: Warm Amber / Bakery aesthetic matching Into Hinabi Bakes
+ * Only shown to logged-in users who have no saved delivery addresses yet.
  */
 
 $loggedInUserId = \App\Core\Session::id();
-$userHasSavedAddress = false;
+if (!$loggedInUserId) {
+    return;
+}
 
-if ($loggedInUserId) {
-    try {
-        $addressModel = new \App\Models\Address();
-        $dbAddr = $addressModel->getByUserId($loggedInUserId);
-        if ($dbAddr && (!empty($dbAddr['street_address']) || !empty($dbAddr['city']))) {
-            $userHasSavedAddress = true;
-        }
-    } catch (\Exception $e) {
-        error_log("Error checking saved address: " . $e->getMessage());
-    }
+$userHasSavedAddress = false;
+try {
+    $addressModel = new \App\Models\Address();
+    $userHasSavedAddress = $addressModel->countByUserId($loggedInUserId) > 0;
+} catch (\Exception $e) {
+    error_log("Error checking saved address: " . $e->getMessage());
+}
+
+if ($userHasSavedAddress) {
+    return;
 }
 ?>
 
@@ -26,7 +28,7 @@ if ($loggedInUserId) {
 
 <div 
     x-data="{
-        isBannerVisible: <?= $userHasSavedAddress ? 'false' : 'true' ?>
+        isBannerVisible: true
     }"
     @delivery-location-saved.window="isBannerVisible = false"
     class="w-full"
@@ -56,7 +58,7 @@ if ($loggedInUserId) {
 
                     <!-- Text Notice -->
                     <div class="text-xs sm:text-sm md:text-[15px] font-medium text-amber-950 truncate sm:whitespace-normal">
-                        <span>Please confirm your delivery address to see local availability and delivery estimates.</span>
+                        <span>Please confirm your delivery address so we know where to deliver your order.</span>
                     </div>
                 </div>
 

@@ -14,12 +14,13 @@ class Order extends Model {
         $sql = "SELECT o.*, 
                        u.full_name AS customer_name, 
                        u.email AS customer_email,
+                       u.phone_number,
                        os.status AS status_name,
-                       ad.street_address, ad.barangay, ad.city, ad.phone_number
+                       ad.street_address, ad.barangay, ad.city
                 FROM orders o
                 LEFT JOIN users u ON o.user_id = u.id
                 LEFT JOIN order_status os ON o.status = os.id
-                LEFT JOIN address_details ad ON o.address_id = ad.id
+                LEFT JOIN user_address_details ad ON o.address_id = ad.id
                 WHERE 1=1";
         $params = [];
 
@@ -71,12 +72,13 @@ class Order extends Model {
         $sql = "SELECT o.*, 
                        u.full_name AS customer_name, 
                        u.email AS customer_email,
+                       u.phone_number,
                        os.status AS status_name,
-                       ad.street_address, ad.barangay, ad.city, ad.phone_number, ad.recipient_name
+                       ad.street_address, ad.barangay, ad.city, ad.recipient_name
                 FROM orders o
                 LEFT JOIN users u ON o.user_id = u.id
                 LEFT JOIN order_status os ON o.status = os.id
-                LEFT JOIN address_details ad ON o.address_id = ad.id
+                LEFT JOIN user_address_details ad ON o.address_id = ad.id
                 WHERE o.id = :id
                 LIMIT 1";
         try {

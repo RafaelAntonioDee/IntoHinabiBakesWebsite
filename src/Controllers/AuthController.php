@@ -81,9 +81,10 @@ class AuthController extends Controller {
     public function register(): void {
         $fullName = trim($_POST['full_name'] ?? '');
         $email = trim($_POST['email'] ?? '');
+        $phoneNumber = trim($_POST['phone_number'] ?? '');
         $password = $_POST['password'] ?? '';
 
-        if (empty($fullName) || empty($email) || empty($password)) {
+        if (empty($fullName) || empty($email) || empty($phoneNumber) || empty($password)) {
             flash('error', 'All fields are required.');
             $this->redirect('/register');
             return;
@@ -91,6 +92,12 @@ class AuthController extends Controller {
 
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
             flash('error', 'Please enter a valid email address.');
+            $this->redirect('/register');
+            return;
+        }
+
+        if (!User::isValidPhoneNumber($phoneNumber)) {
+            flash('error', 'Please enter a valid PH mobile (11 digits, e.g. 09171234567 or +639171234567) or landline number.');
             $this->redirect('/register');
             return;
         }
@@ -114,7 +121,7 @@ class AuthController extends Controller {
 
             $hashedPassword = password_hash($password, PASSWORD_BCRYPT);
             // Default role is 1 (Customer)
-            $created = $userModel->create($fullName, $email, $hashedPassword, 1);
+            $created = $userModel->create($fullName, $email, $hashedPassword, 1, $phoneNumber);
 
             if ($created) {
                 flash('success', 'Account created successfully! You can now log in.');

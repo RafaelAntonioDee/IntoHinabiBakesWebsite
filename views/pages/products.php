@@ -32,7 +32,7 @@
 
     <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-8">
         <!-- Filter Buttons (Powered dynamically by Database category_id) -->
-        <div class="flex justify-start gap-3 flex-wrap lg:translate-y-4">
+        <div class="flex justify-start gap-3 flex-wrap">
         <button class="filter-btn bg-amber-800 text-white px-6 py-2 rounded-full font-medium transition cursor-pointer shadow-sm" data-category-id="all">
             <svg class="hidden w-4 h-4 text-amber-200" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z"/>
@@ -60,24 +60,34 @@
         <?php endforeach; ?>
         </div>
 
-        <div class="flex flex-col sm:flex-row sm:items-end sm:justify-end gap-3 lg:ml-auto">
-        <label for="price-sort" class="flex flex-col gap-2 text-sm font-semibold text-amber-950">
-            Price
-            <select id="price-sort" class="w-full sm:w-64 px-4 py-2.5 border border-gray-300 rounded-lg bg-white text-gray-800 font-normal focus:outline-none focus:ring-2 focus:ring-amber-800 focus:border-amber-800 transition">
-                <option value="">Any price order</option>
-                <option value="low-high">Low to High</option>
-                <option value="high-low">High to Low</option>
-            </select>
-        </label>
-        <label for="rating-sort" class="flex flex-col gap-2 text-sm font-semibold text-amber-950">
-            Rating
-            <select id="rating-sort" class="w-full sm:w-64 px-4 py-2.5 border border-gray-300 rounded-lg bg-white text-gray-800 font-normal focus:outline-none focus:ring-2 focus:ring-amber-800 focus:border-amber-800 transition">
-                <option value="">Any rating order</option>
-                <option value="high-low">High to Low</option>
-                <option value="low-high">Low to High</option>
-                <option value="most-reviewed">Most Reviewed</option>
-            </select>
-        </label>
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-end gap-3 lg:ml-auto">
+            <label for="price-sort" class="flex items-center gap-2 text-sm font-semibold text-amber-950">
+                <span class="whitespace-nowrap">Price:</span>
+                <div class="relative w-full sm:w-48">
+                    <select id="price-sort" class="appearance-none w-full pl-3.5 pr-9 py-2 border border-gray-300 rounded-lg bg-white text-gray-800 font-normal outline-none focus:outline-none focus:ring-2 focus:ring-amber-800 focus:border-amber-800 hover:border-amber-600 transition cursor-pointer">
+                        <option value="">Any price order</option>
+                        <option value="low-high">Low to High</option>
+                        <option value="high-low">High to Low</option>
+                    </select>
+                    <svg class="w-4 h-4 text-gray-500 pointer-events-none absolute right-3 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5"/>
+                    </svg>
+                </div>
+            </label>
+            <label for="rating-sort" class="flex items-center gap-2 text-sm font-semibold text-amber-950">
+                <span class="whitespace-nowrap">Rating:</span>
+                <div class="relative w-full sm:w-48">
+                    <select id="rating-sort" class="appearance-none w-full pl-3.5 pr-9 py-2 border border-gray-300 rounded-lg bg-white text-gray-800 font-normal outline-none focus:outline-none focus:ring-2 focus:ring-amber-800 focus:border-amber-800 hover:border-amber-600 transition cursor-pointer">
+                        <option value="">Any rating order</option>
+                        <option value="high-low">High to Low</option>
+                        <option value="low-high">Low to High</option>
+                        <option value="most-reviewed">Most Reviewed</option>
+                    </select>
+                    <svg class="w-4 h-4 text-gray-500 pointer-events-none absolute right-3 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5"/>
+                    </svg>
+                </div>
+            </label>
         </div>
     </div>
 

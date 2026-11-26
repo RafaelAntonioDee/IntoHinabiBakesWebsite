@@ -212,7 +212,7 @@ $_isLoggedIn  = \App\Core\Session::check();
                                 My Profile
                             </a>
                             <div class="border-t border-amber-50"></div>
-                            <a href="<?= url('/logout') ?>" class="flex items-center gap-2.5 px-4 py-2.5 text-sm text-rose-600 hover:bg-rose-50 transition">
+                            <a href="<?= url('/logout') ?>" onclick="return openLogoutConfirmModal(event)" class="flex items-center gap-2.5 px-4 py-2.5 text-sm text-rose-600 hover:bg-rose-50 transition">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75"/></svg>
                                 Sign Out
                             </a>
@@ -220,7 +220,7 @@ $_isLoggedIn  = \App\Core\Session::check();
                     </div>
 
                     <!-- Direct Logout Button -->
-                    <a href="<?= url('/logout') ?>" class="bg-amber-800 hover:bg-amber-900 text-white px-3.5 py-1.5 rounded-lg font-semibold text-xs transition flex-shrink-0 whitespace-nowrap">
+                    <a href="<?= url('/logout') ?>" onclick="return openLogoutConfirmModal(event)" class="bg-amber-800 hover:bg-amber-900 text-white px-3.5 py-1.5 rounded-lg font-semibold text-xs transition flex-shrink-0 whitespace-nowrap">
                         Logout
                     </a>
                 <?php else: ?>
@@ -281,7 +281,7 @@ $_isLoggedIn  = \App\Core\Session::check();
             <div class="border-t border-amber-100 pt-2">
                 <?php if ($_isLoggedIn): ?>
                     <a href="<?= url('/profile') ?>" class="block text-amber-800 font-semibold py-1.5">Profile (<?= e(\App\Core\Session::name()) ?>)</a>
-                    <a href="<?= url('/logout') ?>" class="block text-rose-600 font-semibold py-1.5">Logout</a>
+                    <a href="<?= url('/logout') ?>" onclick="return openLogoutConfirmModal(event)" class="block text-rose-600 font-semibold py-1.5">Logout</a>
                 <?php else: ?>
                     <a href="<?= url('/login') ?>" class="block text-gray-700 font-medium py-1.5">Login</a>
                     <a href="<?= url('/register') ?>" class="block text-amber-800 font-semibold py-1.5">Sign Up</a>
@@ -299,3 +299,51 @@ $_isLoggedIn  = \App\Core\Session::check();
         <?php require_once dirname(__DIR__) . '/components/delivery_banner.php'; ?>
     <?php endif; ?>
 </nav>
+
+<?php if ($_isLoggedIn): ?>
+<script>
+window.openLogoutConfirmModal = function(e) {
+    if (e) e.preventDefault();
+    window.dispatchEvent(new CustomEvent('open-logout-modal'));
+    return false;
+};
+</script>
+<div
+    x-data="{ open: false }"
+    @open-logout-modal.window="open = true"
+    @keydown.escape.window="open = false"
+    x-show="open"
+    x-cloak
+    class="fixed inset-0 z-[80] overflow-y-auto"
+    role="dialog"
+    aria-modal="true"
+>
+    <div x-show="open" x-transition.opacity class="fixed inset-0 bg-stone-900/60 backdrop-blur-sm" @click="open = false"></div>
+    <div class="flex min-h-full items-center justify-center p-4 text-center">
+        <div
+            x-show="open"
+            x-transition
+            @click.stop
+            class="relative w-full max-w-sm rounded-2xl bg-white p-6 text-left shadow-2xl border border-amber-200/80"
+        >
+            <h3 class="text-lg font-bold text-amber-950">Confirm Logout</h3>
+            <p class="mt-2 text-sm text-gray-600">Are you sure you want to log out of your account?</p>
+            <div class="mt-6 flex items-center justify-end gap-3">
+                <button
+                    type="button"
+                    @click="open = false"
+                    class="px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-xl transition cursor-pointer"
+                >
+                    Cancel
+                </button>
+                <a
+                    href="<?= url('/logout') ?>"
+                    class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold rounded-xl shadow-sm transition"
+                >
+                    Yes, Logout
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+<?php endif; ?>
