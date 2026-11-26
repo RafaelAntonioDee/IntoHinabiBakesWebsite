@@ -50,10 +50,9 @@ class ProductController extends Controller {
         }
 
         $userId = Session::id();
-        $userName = Session::name() ?? 'Verified Customer';
 
         $reviewModel = new ProductReview();
-        $saved = $reviewModel->saveReview($productId, $userId, $userName, $rating, $comment);
+        $saved = $reviewModel->saveReview($productId, $userId, $rating, $comment);
 
         if (!$saved) {
             $this->json(['success' => false, 'error' => 'Failed to save review.'], 500);

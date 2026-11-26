@@ -151,7 +151,6 @@ CREATE TABLE IF NOT EXISTS product_reviews (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     product_id BIGINT NOT NULL,
     user_id BIGINT NULL,
-    user_name VARCHAR(255) NOT NULL,
     rating TINYINT NOT NULL,
     comment TEXT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,

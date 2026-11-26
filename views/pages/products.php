@@ -1,5 +1,6 @@
 <?php
     $sessionUser = \App\Core\Session::name() ?? '';
+    $sessionUserId = \App\Core\Session::id();
     $isLoggedIn = \App\Core\Session::check();
 
     // Pre-index products by ID for clean, zero-escape modal lookup
@@ -29,10 +30,11 @@
         <p class="text-gray-600 text-sm">Handcrafted cookies and artisan gourmet cakes baked fresh daily in small batches.</p>
     </div>
 
-    <!-- Filter Buttons (Powered dynamically by Database category_id) -->
-    <div class="flex justify-center space-x-3 mb-10 flex-wrap gap-y-3">
-        <button class="filter-btn bg-amber-800 text-white px-6 py-2 rounded-full font-medium transition cursor-pointer shadow-sm flex items-center gap-2" data-category-id="all">
-            <svg class="w-4 h-4 text-amber-200" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+    <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-8">
+        <!-- Filter Buttons (Powered dynamically by Database category_id) -->
+        <div class="flex justify-start gap-3 flex-wrap lg:translate-y-4">
+        <button class="filter-btn bg-amber-800 text-white px-6 py-2 rounded-full font-medium transition cursor-pointer shadow-sm" data-category-id="all">
+            <svg class="hidden w-4 h-4 text-amber-200" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z"/>
             </svg>
             <span>All Treats</span>
@@ -42,33 +44,60 @@
                 $count = count(array_filter($products, fn($p) => ($p['category_id'] ?? null) == $cat['id']));
                 $labelName = ($cat['id'] == 1) ? 'Cookies' : (($cat['id'] == 2) ? 'Cakes' : $cat['category_name']);
             ?>
-            <button class="filter-btn bg-gray-200 text-gray-800 hover:bg-gray-300 px-6 py-2 rounded-full font-medium transition cursor-pointer shadow-sm flex items-center gap-2" data-category-id="<?= e($cat['id']) ?>">
+            <button class="filter-btn bg-gray-200 text-gray-800 hover:bg-gray-300 px-6 py-2 rounded-full font-medium transition cursor-pointer shadow-sm" data-category-id="<?= e($cat['id']) ?>">
                 <?php if ($cat['id'] == 1): ?>
-                    <svg class="w-4 h-4 text-amber-700" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <svg class="hidden w-4 h-4 text-amber-700" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                         <circle cx="12" cy="12" r="9"/>
                         <path stroke-linecap="round" stroke-linejoin="round" d="M8.5 9h.01M15.5 9h.01M12 13h.01M9 15.5h.01M14.5 15h.01"/>
                     </svg>
                 <?php else: ?>
-                    <svg class="w-4 h-4 text-rose-700" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <svg class="hidden w-4 h-4 text-rose-700" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M12 8.25v-1.5m0 0A2.25 2.25 0 109.75 4.5a2.25 2.25 0 002.25 2.25zm0 0A2.25 2.25 0 1114.25 4.5 2.25 2.25 0 0112 6.75zm-7.5 7.5h15M4.5 18.75h15M3 10.5h18a1.5 1.5 0 011.5 1.5v6.75a2.25 2.25 0 01-2.25 2.25H3.75A2.25 2.25 0 011.5 18.75V12a1.5 1.5 0 011.5-1.5z"/>
                     </svg>
                 <?php endif; ?>
                 <span><?= e($labelName) ?> (<?= $count ?>)</span>
             </button>
         <?php endforeach; ?>
+        </div>
+
+        <div class="flex flex-col sm:flex-row sm:items-end sm:justify-end gap-3 lg:ml-auto">
+        <label for="price-sort" class="flex flex-col gap-2 text-sm font-semibold text-amber-950">
+            Price
+            <select id="price-sort" class="w-full sm:w-64 px-4 py-2.5 border border-gray-300 rounded-lg bg-white text-gray-800 font-normal focus:outline-none focus:ring-2 focus:ring-amber-800 focus:border-amber-800 transition">
+                <option value="">Any price order</option>
+                <option value="low-high">Low to High</option>
+                <option value="high-low">High to Low</option>
+            </select>
+        </label>
+        <label for="rating-sort" class="flex flex-col gap-2 text-sm font-semibold text-amber-950">
+            Rating
+            <select id="rating-sort" class="w-full sm:w-64 px-4 py-2.5 border border-gray-300 rounded-lg bg-white text-gray-800 font-normal focus:outline-none focus:ring-2 focus:ring-amber-800 focus:border-amber-800 transition">
+                <option value="">Any rating order</option>
+                <option value="high-low">High to Low</option>
+                <option value="low-high">Low to High</option>
+                <option value="most-reviewed">Most Reviewed</option>
+            </select>
+        </label>
+        </div>
     </div>
 
     <!-- Product Grid -->
-    <div class="grid md:grid-cols-3 gap-8">
-        <?php foreach ($products as $item): ?>
+    <div id="product-grid" class="grid md:grid-cols-3 gap-8">
+        <?php foreach ($products as $index => $item): ?>
             <?php 
                 $catId = (int)($item['category_id'] ?? 1);
                 $catName = $item['category_name'] ?? ($catId == 2 ? 'Cakes' : 'Cookies');
                 $itemId = (int)($item['id'] ?? 0);
+                $reviewData = $reviewsData[$itemId] ?? [];
             ?>
             <div 
                 class="product-item category-<?= e($catId) ?> bg-white rounded-xl shadow-md overflow-hidden border border-amber-100 flex flex-col transition-all duration-200 hover:shadow-xl hover:-translate-y-1 cursor-pointer group" 
                 data-category-id="<?= e($catId) ?>"
+                data-default-order="<?= e($index) ?>"
+                data-price="<?= e(number_format((float)($item['price'] ?? 0), 2, '.', '')) ?>"
+                data-rating="<?= e((float)($reviewData['average_rating'] ?? 0)) ?>"
+                data-review-count="<?= e((int)($reviewData['total_count'] ?? 0)) ?>"
+                data-name="<?= e($item['name']) ?>"
                 @click="openModal(<?= $itemId ?>)"
                 tabindex="0"
                 role="button"
@@ -348,7 +377,7 @@
                                 <div class="flex items-center justify-between">
                                     <span class="font-bold text-xs text-amber-950 flex items-center gap-1.5">
                                         <span x-text="rev.name"></span>
-                                        <template x-if="loggedInUser && rev.name === loggedInUser">
+                                        <template x-if="loggedInUserId && rev.user_id === loggedInUserId">
                                             <span class="text-[10px] bg-amber-100 text-amber-900 font-semibold px-1.5 py-0.2 rounded">You</span>
                                         </template>
                                     </span>
@@ -462,6 +491,7 @@ function productCatalog() {
         userRating: 5,
         hoverRating: 0,
         loggedInUser: <?= json_encode($sessionUser) ?>,
+        loggedInUserId: <?= json_encode($sessionUserId) ?>,
         isLoggedIn: <?= json_encode($isLoggedIn) ?>,
         reviewComment: '',
         reviewSubmitted: false,

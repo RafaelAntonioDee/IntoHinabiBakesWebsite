@@ -26,4 +26,37 @@ $(document).ready(function() {
             $('.category-' + selectedId).stop(true, true).fadeIn(250);
         }
     });
+
+    $('#price-sort, #rating-sort').on('change', function() {
+        const priceSort = $('#price-sort').val();
+        const ratingSort = $('#rating-sort').val();
+        const products = $('#product-grid').children('.product-item').get();
+        const sortComparisons = [];
+
+        if (priceSort === 'low-high') {
+            sortComparisons.push((a, b) => Number(a.dataset.price) - Number(b.dataset.price));
+        } else if (priceSort === 'high-low') {
+            sortComparisons.push((a, b) => Number(b.dataset.price) - Number(a.dataset.price));
+        }
+
+        if (ratingSort === 'high-low') {
+            sortComparisons.push((a, b) => Number(b.dataset.rating) - Number(a.dataset.rating)
+                || Number(b.dataset.reviewCount) - Number(a.dataset.reviewCount));
+        } else if (ratingSort === 'low-high') {
+            sortComparisons.push((a, b) => Number(a.dataset.rating) - Number(b.dataset.rating));
+        } else if (ratingSort === 'most-reviewed') {
+            sortComparisons.push((a, b) => Number(b.dataset.reviewCount) - Number(a.dataset.reviewCount)
+                || Number(b.dataset.rating) - Number(a.dataset.rating));
+        }
+
+        products.sort(function(a, b) {
+            for (const compare of sortComparisons) {
+                const result = compare(a, b);
+                if (result !== 0) return result;
+            }
+            return Number(a.dataset.defaultOrder) - Number(b.dataset.defaultOrder);
+        });
+
+        $('#product-grid').append(products);
+    });
 });

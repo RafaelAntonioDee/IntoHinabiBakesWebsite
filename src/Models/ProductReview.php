@@ -14,18 +14,20 @@ class ProductReview extends Model {
     public function getReviews(int $productId): array {
         try {
             $stmt = $this->getDb()->prepare("
-                SELECT id, product_id, user_id, user_name, rating, comment, created_at
-                FROM product_reviews
-                WHERE product_id = :product_id
-                ORDER BY created_at DESC
+                SELECT pr.id, pr.product_id, pr.user_id, COALESCE(u.full_name, 'Verified Customer') AS name,
+                       pr.rating, pr.comment, pr.created_at
+                FROM product_reviews pr
+                LEFT JOIN users u ON u.id = pr.user_id
+                WHERE pr.product_id = :product_id
+                ORDER BY pr.created_at DESC
             ");
             $stmt->execute([':product_id' => $productId]);
             $reviews = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
 
             foreach ($reviews as &$r) {
                 $r['date'] = $this->formatRelativeDate($r['created_at'] ?? '');
-                $r['name'] = $r['user_name'];
                 $r['rating'] = (int)$r['rating'];
+                $r['user_id'] = $r['user_id'] !== null ? (int)$r['user_id'] : null;
             }
             return $reviews;
         } catch (Throwable $e) {
@@ -93,9 +95,11 @@ class ProductReview extends Model {
     public function getAllReviewsData(?int $userId = null): array {
         try {
             $stmt = $this->getDb()->query("
-                SELECT id, product_id, user_id, user_name, rating, comment, created_at
-                FROM product_reviews
-                ORDER BY created_at DESC
+                SELECT pr.id, pr.product_id, pr.user_id, COALESCE(u.full_name, 'Verified Customer') AS name,
+                       pr.rating, pr.comment, pr.created_at
+                FROM product_reviews pr
+                LEFT JOIN users u ON u.id = pr.user_id
+                ORDER BY pr.created_at DESC
             ");
             $allReviews = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
 
@@ -114,7 +118,7 @@ class ProductReview extends Model {
                 $rating = max(1, min(5, (int)$r['rating']));
                 $grouped[$pId]['reviews'][] = [
                     'id'      => (int)$r['id'],
-                    'name'    => $r['user_name'],
+                    'name'    => $r['name'],
                     'rating'  => $rating,
                     'comment' => $r['comment'],
                     'date'    => $this->formatRelativeDate($r['created_at']),
@@ -159,7 +163,7 @@ class ProductReview extends Model {
     /**
      * Save or update a review
      */
-    public function saveReview(int $productId, ?int $userId, string $userName, int $rating, string $comment): bool {
+    public function saveReview(int $productId, ?int $userId, int $rating, string $comment): bool {
         $db = $this->getDb();
         $rating = max(1, min(5, $rating));
 
@@ -171,18 +175,18 @@ class ProductReview extends Model {
             if ($existingId) {
                 $stmt = $db->prepare("
                     UPDATE product_reviews 
-                    SET rating = ?, comment = ?, user_name = ?, updated_at = NOW() 
+                    SET rating = ?, comment = ?, updated_at = NOW()
                     WHERE id = ?
                 ");
-                return $stmt->execute([$rating, $comment, $userName, $existingId]);
+                return $stmt->execute([$rating, $comment, $existingId]);
             }
         }
 
         $stmt = $db->prepare("
-            INSERT INTO product_reviews (product_id, user_id, user_name, rating, comment, created_at, updated_at)
-            VALUES (?, ?, ?, ?, ?, NOW(), NOW())
+            INSERT INTO product_reviews (product_id, user_id, rating, comment, created_at, updated_at)
+            VALUES (?, ?, ?, ?, NOW(), NOW())
         ");
-        return $stmt->execute([$productId, $userId, $userName, $rating, $comment]);
+        return $stmt->execute([$productId, $userId, $rating, $comment]);
     }
 
     /**
