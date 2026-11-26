@@ -289,4 +289,13 @@ $_isLoggedIn  = \App\Core\Session::check();
             </div>
         </div>
     </div>
+
+    <!-- Attached Sticky Delivery Address Confirmation Banner -->
+    <?php 
+    $_uri = $_SERVER['REQUEST_URI'] ?? '';
+    $_isCookiesPage = str_contains($_uri, 'products') || (($_route ?? '') === '/products' || str_starts_with(($_route ?? ''), '/products'));
+    if ($_isCookiesPage): 
+    ?>
+        <?php require_once dirname(__DIR__) . '/components/delivery_banner.php'; ?>
+    <?php endif; ?>
 </nav>

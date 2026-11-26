@@ -35,6 +35,7 @@ $router->get('/register', [AuthController::class, 'showRegister']);
 $router->post('/register', [AuthController::class, 'register']);
 $router->get('/logout', [AuthController::class, 'logout']);
 $router->get('/profile', [ProfileController::class, 'index']);
+$router->post('/api/address/save', [ProfileController::class, 'saveAddress']);
 
 // 5. Define Baker Kitchen Routes (RBAC: Baker & Admin)
 $router->get('/baker', [BakerController::class, 'index']);
