@@ -21,7 +21,8 @@
         <h3 id="formTitle" class="font-bold text-stone-900 text-base">Add New Bakery Item</h3>
         <button onclick="document.getElementById('productFormModal').classList.add('hidden')" class="text-stone-400 hover:text-stone-600 font-bold text-lg leading-none">&times;</button>
     </div>
-    <form action="<?= url('/admin/products/save') ?>" method="POST" id="productForm" class="space-y-4">
+    <form action="<?= url('/admin/products/save') ?>" method="POST" id="productForm" data-ajax="true" novalidate class="space-y-4">
+        <div data-ajax-alert class="hidden"></div>
         <input type="hidden" name="id" id="prod_id" value="0">
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div>
@@ -148,7 +149,8 @@
                                     Edit
                                 </button>
                                 <form action="<?= url('/admin/products/delete') ?>" method="POST"
-                                      onsubmit="return confirm('Delete this product?');" class="inline">
+                                      data-ajax="true" data-alert-target="#portal-ajax-alert" data-confirm="Delete this product?"
+                                      class="inline admin-delete-product-form">
                                     <input type="hidden" name="id" value="<?= (int)$p['id'] ?>">
                                     <button type="submit" class="text-rose-600 hover:text-rose-800 font-semibold hover:underline text-xs cursor-pointer">Delete</button>
                                 </form>
@@ -175,6 +177,14 @@ function editProduct(prod) {
     document.getElementById('prod_availability').checked = Boolean(prod.availability);
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
+
+$(document).ready(function() {
+    $(document).on('ajax:success', '.admin-delete-product-form', function() {
+        $(this).closest('tr').fadeOut(200, function() {
+            $(this).remove();
+        });
+    });
+});
 </script>
 
 <?php require_once dirname(__DIR__) . '/layouts/admin_footer.php'; ?>

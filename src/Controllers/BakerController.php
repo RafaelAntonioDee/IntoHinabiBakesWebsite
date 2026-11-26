@@ -68,7 +68,11 @@ class BakerController extends Controller {
         $statusId = (int)($_POST['status_id'] ?? 0);
 
         if ($orderId <= 0 || $statusId <= 0) {
-            flash('error', 'Invalid order or status selection.');
+            $err = 'Invalid order or status selection.';
+            if ($this->isAjax()) {
+                $this->json(['success' => false, 'error' => $err], 400);
+            }
+            flash('error', $err);
             $this->redirect('/baker/orders');
             return;
         }
@@ -82,9 +86,23 @@ class BakerController extends Controller {
                 4 => 'Completed',
             ];
             $label = $statusLabels[$statusId] ?? "Status #{$statusId}";
-            flash('success', "Order #{$orderId} updated to {$label}!");
+            $msg = "Order #{$orderId} updated to {$label}!";
+            if ($this->isAjax()) {
+                $this->json([
+                    'success'     => true,
+                    'message'     => $msg,
+                    'order_id'    => $orderId,
+                    'status_id'   => $statusId,
+                    'status_name' => $label,
+                ]);
+            }
+            flash('success', $msg);
         } else {
-            flash('error', "Could not update order #{$orderId}.");
+            $err = "Could not update order #{$orderId}.";
+            if ($this->isAjax()) {
+                $this->json(['success' => false, 'error' => $err], 500);
+            }
+            flash('error', $err);
         }
 
         $this->redirect('/baker/orders');
@@ -116,23 +134,45 @@ class BakerController extends Controller {
         $productId = (int)($_POST['product_id'] ?? 0);
 
         if ($productId <= 0) {
-            flash('error', 'Invalid product selected.');
+            $err = 'Invalid product selected.';
+            if ($this->isAjax()) {
+                $this->json(['success' => false, 'error' => $err], 400);
+            }
+            flash('error', $err);
             $this->redirect('/baker/inventory');
             return;
         }
 
         $product = $this->productModel->findById($productId);
         if (!$product) {
-            flash('error', 'Product not found.');
+            $err = 'Product not found.';
+            if ($this->isAjax()) {
+                $this->json(['success' => false, 'error' => $err], 404);
+            }
+            flash('error', $err);
             $this->redirect('/baker/inventory');
             return;
         }
 
         $toggled = $this->productModel->toggleAvailability($productId);
         if ($toggled) {
+            $newAvailability = empty($product['availability']);
+            $msg = "Updated stock status for '" . $product['name'] . "'!";
+            if ($this->isAjax()) {
+                $this->json([
+                    'success'      => true,
+                    'message'      => $msg,
+                    'product_id'   => $productId,
+                    'availability' => $newAvailability,
+                ]);
+            }
             flash('success', "Updated stock status for '" . htmlspecialchars($product['name']) . "'!");
         } else {
-            flash('error', 'Failed to update stock status.');
+            $err = 'Failed to update stock status.';
+            if ($this->isAjax()) {
+                $this->json(['success' => false, 'error' => $err], 500);
+            }
+            flash('error', $err);
         }
 
         $this->redirect('/baker/inventory');

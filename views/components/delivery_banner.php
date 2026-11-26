@@ -33,7 +33,7 @@ if ($userHasSavedAddress) {
     @delivery-location-saved.window="isBannerVisible = false"
     class="w-full"
 >
-    <!-- 1. The Encircled Delivery Address Confirmation Banner Attached to Sticky Navbar -->
+    <!-- Delivery Address Confirmation Banner -->
     <div 
         x-show="isBannerVisible"
         x-transition:enter="transition ease-out duration-300"

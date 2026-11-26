@@ -139,7 +139,7 @@
 
                 <!-- Workflow Progression -->
                 <div class="pt-4 border-t border-amber-100 mt-2">
-                    <form action="<?= url('/baker/orders/status') ?>" method="POST" class="flex flex-wrap items-center justify-between gap-2">
+                    <form action="<?= url('/baker/orders/status') ?>" method="POST" data-ajax="true" data-alert-target="#portal-ajax-alert" class="flex flex-wrap items-center justify-between gap-2 baker-order-status-form">
                         <input type="hidden" name="order_id" value="<?= (int)$order['id'] ?>">
                         <div class="flex-grow">
                             <?php if ($st === 1): ?>
@@ -168,7 +168,7 @@
                             <?php endif; ?>
                         </div>
                         <!-- Manual Override -->
-                        <select onchange="this.form.submit()" name="status_id"
+                        <select onchange="$(this.form).trigger('submit')" name="status_id"
                                 class="text-xs bg-stone-100 border border-stone-300 rounded-lg px-2 py-2 text-stone-700 focus:outline-none focus:ring-1 focus:ring-amber-700">
                             <option value="" disabled selected>Change Status...</option>
                             <?php foreach ($statuses as $stat): ?>
@@ -185,3 +185,13 @@
 <?php endif; ?>
 
 <?php require_once dirname(__DIR__) . '/layouts/baker_footer.php'; ?>
+
+<script>
+$(document).ready(function() {
+    $(document).on('ajax:success', '.baker-order-status-form', function() {
+        setTimeout(function() {
+            window.location.reload();
+        }, 500);
+    });
+});
+</script>

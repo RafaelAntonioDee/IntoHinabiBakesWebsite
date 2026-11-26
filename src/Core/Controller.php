@@ -41,6 +41,15 @@ abstract class Controller {
     }
 
     /**
+     * Check whether the current request expects a JSON/AJAX response
+     */
+    protected function isAjax(): bool {
+        $xhr = $_SERVER['HTTP_X_REQUESTED_WITH'] ?? '';
+        $accept = $_SERVER['HTTP_ACCEPT'] ?? '';
+        return strtolower($xhr) === 'xmlhttprequest' || str_contains($accept, 'application/json');
+    }
+
+    /**
      * Return JSON response
      */
     protected function json(array $data, int $status = 200): void {

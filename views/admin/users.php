@@ -23,7 +23,7 @@
         <h3 class="font-bold text-stone-900 text-base">Provision New Account</h3>
         <button onclick="document.getElementById('createUserModal').classList.add('hidden')" class="text-stone-400 hover:text-stone-600 font-bold text-lg leading-none">&times;</button>
     </div>
-    <form action="<?= url('/admin/users/create') ?>" method="POST" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
+    <form action="<?= url('/admin/users/create') ?>" method="POST" data-ajax="true" novalidate class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-start">
         <div>
             <label class="block text-xs font-bold text-stone-700 mb-1">Full Name</label>
             <input type="text" name="full_name" required placeholder="e.g. Maria Clara"
@@ -141,7 +141,7 @@
                             </td>
                             <td class="px-5 py-3 font-mono text-stone-600"><?= e($u['email']) ?></td>
                             <td class="px-5 py-3">
-                                <span class="inline-block px-2.5 py-1 rounded-full text-[10px] font-bold border uppercase tracking-wider <?= $roleBadge ?>">
+                                <span data-role-badge class="inline-block px-2.5 py-1 rounded-full text-[10px] font-bold border uppercase tracking-wider <?= $roleBadge ?>">
                                     <?= e($u['role_name'] ?? 'Customer') ?>
                                 </span>
                             </td>
@@ -149,9 +149,9 @@
                                 <?php if ($isSelf): ?>
                                     <span class="text-[11px] text-stone-400 italic">Self-demotion disabled for safety</span>
                                 <?php else: ?>
-                                    <form action="<?= url('/admin/users/role') ?>" method="POST" class="flex items-center gap-2">
+                                    <form action="<?= url('/admin/users/role') ?>" method="POST" data-ajax="true" data-alert-target="#portal-ajax-alert" class="flex items-center gap-2 admin-user-role-form">
                                         <input type="hidden" name="user_id" value="<?= (int)$u['id'] ?>">
-                                        <select name="role_id" onchange="this.form.submit()"
+                                        <select name="role_id" onchange="$(this.form).trigger('submit')"
                                                 class="text-xs bg-stone-50 border border-stone-300 rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-amber-700">
                                             <?php foreach ($roles as $r): ?>
                                                 <option value="<?= (int)$r['id'] ?>" <?= ($rId == (int)$r['id']) ? 'selected' : '' ?>>
@@ -168,7 +168,8 @@
                             <td class="px-5 py-3 text-right">
                                 <?php if (!$isSelf): ?>
                                     <form action="<?= url('/admin/users/delete') ?>" method="POST"
-                                          onsubmit="return confirm('Delete user \'<?= e(addslashes($u['full_name'])) ?>\'?');" class="inline">
+                                          data-ajax="true" data-alert-target="#portal-ajax-alert" data-confirm="Delete user '<?= e(addslashes($u['full_name'])) ?>'?"
+                                          class="inline admin-delete-user-form">
                                         <input type="hidden" name="user_id" value="<?= (int)$u['id'] ?>">
                                         <button type="submit" class="text-rose-600 hover:text-rose-800 font-semibold hover:underline text-xs cursor-pointer">Delete</button>
                                     </form>
@@ -185,3 +186,28 @@
 </div>
 
 <?php require_once dirname(__DIR__) . '/layouts/admin_footer.php'; ?>
+
+<script>
+$(document).ready(function() {
+    const roleBadges = {
+        1: 'bg-stone-100 text-stone-700 border-stone-200',
+        2: 'bg-orange-100 text-orange-800 border-orange-200',
+        3: 'bg-amber-100 text-amber-900 border-amber-200'
+    };
+
+    $(document).on('ajax:success', '.admin-user-role-form', function(e, res) {
+        if (!res || !res.role_id) return;
+        const $badge = $(this).closest('tr').find('[data-role-badge]');
+        $badge
+            .removeClass('bg-stone-100 text-stone-700 border-stone-200 bg-orange-100 text-orange-800 border-orange-200 bg-amber-100 text-amber-900 border-amber-200')
+            .addClass(roleBadges[res.role_id] || roleBadges[1])
+            .text(res.role_name);
+    });
+
+    $(document).on('ajax:success', '.admin-delete-user-form', function() {
+        $(this).closest('tr').fadeOut(200, function() {
+            $(this).remove();
+        });
+    });
+});
+</script>

@@ -43,6 +43,9 @@ class ProfileController extends Controller {
      */
     public function updateName(): void {
         if (!Session::check()) {
+            if ($this->isAjax()) {
+                $this->json(['success' => false, 'error' => 'Please log in to update your profile.'], 401);
+            }
             flash('error', 'Please log in to update your profile.');
             $this->redirect('/login');
             return;
@@ -52,7 +55,11 @@ class ProfileController extends Controller {
         $fullName = trim((string)($_POST['full_name'] ?? ''));
 
         if ($fullName === '') {
-            flash('error', 'Please enter your full name.');
+            $err = 'Full name is required.';
+            if ($this->isAjax()) {
+                $this->json(['success' => false, 'errors' => ['full_name' => $err], 'error' => $err], 400);
+            }
+            flash('error', $err);
             $this->redirect('/profile');
             return;
         }
@@ -60,8 +67,14 @@ class ProfileController extends Controller {
         $userModel = new User();
         if ($userModel->updateFullName($userId, $fullName)) {
             $_SESSION['user_name'] = $fullName;
+            if ($this->isAjax()) {
+                $this->json(['success' => true, 'message' => 'Full name updated successfully.', 'full_name' => $fullName]);
+            }
             flash('success', 'Full name updated successfully.');
         } else {
+            if ($this->isAjax()) {
+                $this->json(['success' => false, 'error' => 'Failed to update full name.'], 500);
+            }
             flash('error', 'Failed to update full name.');
         }
 
@@ -73,6 +86,9 @@ class ProfileController extends Controller {
      */
     public function updatePhone(): void {
         if (!Session::check()) {
+            if ($this->isAjax()) {
+                $this->json(['success' => false, 'error' => 'Please log in to update your profile.'], 401);
+            }
             flash('error', 'Please log in to update your profile.');
             $this->redirect('/login');
             return;
@@ -82,15 +98,25 @@ class ProfileController extends Controller {
         $phoneNumber = trim((string)($_POST['phone_number'] ?? ''));
 
         if (!User::isValidPhoneNumber($phoneNumber)) {
-            flash('error', 'Please enter a valid PH mobile (11 digits, e.g. 09171234567 or +639171234567) or landline number.');
+            $err = 'Enter a valid 11-digit PH mobile (e.g. 09171234567) or landline.';
+            if ($this->isAjax()) {
+                $this->json(['success' => false, 'errors' => ['phone_number' => $err], 'error' => $err], 400);
+            }
+            flash('error', $err);
             $this->redirect('/profile');
             return;
         }
 
         $userModel = new User();
         if ($userModel->updatePhoneNumber($userId, $phoneNumber)) {
+            if ($this->isAjax()) {
+                $this->json(['success' => true, 'message' => 'Phone number updated successfully.', 'phone_number' => $phoneNumber]);
+            }
             flash('success', 'Phone number updated successfully.');
         } else {
+            if ($this->isAjax()) {
+                $this->json(['success' => false, 'error' => 'Failed to update phone number.'], 500);
+            }
             flash('error', 'Failed to update phone number.');
         }
 
@@ -102,6 +128,9 @@ class ProfileController extends Controller {
      */
     public function updateEmail(): void {
         if (!Session::check()) {
+            if ($this->isAjax()) {
+                $this->json(['success' => false, 'error' => 'Please log in to update your profile.'], 401);
+            }
             flash('error', 'Please log in to update your profile.');
             $this->redirect('/login');
             return;
@@ -111,7 +140,11 @@ class ProfileController extends Controller {
         $email = trim((string)($_POST['email'] ?? ''));
 
         if ($email === '' || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            flash('error', 'Please enter a valid email address.');
+            $err = 'Enter a valid email address.';
+            if ($this->isAjax()) {
+                $this->json(['success' => false, 'errors' => ['email' => $err], 'error' => $err], 400);
+            }
+            flash('error', $err);
             $this->redirect('/profile');
             return;
         }
@@ -119,14 +152,24 @@ class ProfileController extends Controller {
         $userModel = new User();
         $existing = $userModel->findByEmail($email);
         if ($existing && (int)$existing['id'] !== $userId) {
-            flash('error', 'That email address is already in use by another account.');
+            $err = 'Email is already in use by another account.';
+            if ($this->isAjax()) {
+                $this->json(['success' => false, 'errors' => ['email' => $err], 'error' => $err], 409);
+            }
+            flash('error', $err);
             $this->redirect('/profile');
             return;
         }
 
         if ($userModel->updateEmail($userId, $email)) {
+            if ($this->isAjax()) {
+                $this->json(['success' => true, 'message' => 'Email address updated successfully.', 'email' => $email]);
+            }
             flash('success', 'Email address updated successfully.');
         } else {
+            if ($this->isAjax()) {
+                $this->json(['success' => false, 'error' => 'Failed to update email address.'], 500);
+            }
             flash('error', 'Failed to update email address.');
         }
 

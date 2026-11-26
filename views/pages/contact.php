@@ -9,7 +9,8 @@
     </div>
 
     <div class="grid md:grid-cols-3 gap-8 items-start">
-        <form action="<?= url('/contact') ?>" method="POST" class="md:col-span-2 bg-white p-6 md:p-8 rounded-xl shadow-sm border border-amber-200/80 space-y-5">
+        <form action="<?= url('/contact') ?>" method="POST" data-ajax="true" data-reset-on-success="true" novalidate class="md:col-span-2 bg-white p-6 md:p-8 rounded-xl shadow-sm border border-amber-200/80 space-y-5">
+            <div data-ajax-alert class="hidden"></div>
             <div>
                 <label class="block text-gray-800 font-semibold text-sm mb-1.5" for="name">Full Name</label>
                 <input type="text" id="name" name="name" required value="<?= e(old('name')) ?>" placeholder="Jane Doe" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-amber-800 focus:border-amber-800 transition">

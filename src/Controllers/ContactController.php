@@ -17,16 +17,25 @@ class ContactController extends Controller {
         $email = trim($_POST['email'] ?? '');
         $message = trim($_POST['message'] ?? '');
 
-        // Validation
-        if (empty($name) || empty($email) || empty($message)) {
-            flash('error', 'Please fill in all required fields.');
-            $_SESSION['old_input'] = ['name' => $name, 'email' => $email, 'message' => $message];
-            $this->redirect('/contact');
-            return;
+        // Validation (check all fields at once)
+        $errors = [];
+        if ($name === '') {
+            $errors['name'] = 'Full name is required.';
+        }
+        if ($email === '') {
+            $errors['email'] = 'Email address is required.';
+        } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            $errors['email'] = 'Enter a valid email address.';
+        }
+        if ($message === '') {
+            $errors['message'] = 'Message is required.';
         }
 
-        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            flash('error', 'Please enter a valid email address.');
+        if (!empty($errors)) {
+            if ($this->isAjax()) {
+                $this->json(['success' => false, 'errors' => $errors, 'error' => reset($errors)], 400);
+            }
+            flash('error', implode(' ', $errors));
             $_SESSION['old_input'] = ['name' => $name, 'email' => $email, 'message' => $message];
             $this->redirect('/contact');
             return;
@@ -36,9 +45,17 @@ class ContactController extends Controller {
             $inquiry = new ContactInquiry();
             $inquiry->create($name, $email, $message);
             unset($_SESSION['old_input']);
-            flash('success', "Inquiry submitted successfully! We'll get back to you soon.");
+            $msg = "Inquiry submitted successfully! We'll get back to you soon.";
+            if ($this->isAjax()) {
+                $this->json(['success' => true, 'message' => $msg]);
+            }
+            flash('success', $msg);
         } catch (\Throwable $e) {
-            flash('error', 'Error saving your message to the database: ' . $e->getMessage());
+            $err = 'Error saving your message to the database: ' . $e->getMessage();
+            if ($this->isAjax()) {
+                $this->json(['success' => false, 'error' => $err], 500);
+            }
+            flash('error', $err);
             $_SESSION['old_input'] = ['name' => $name, 'email' => $email, 'message' => $message];
         }
 

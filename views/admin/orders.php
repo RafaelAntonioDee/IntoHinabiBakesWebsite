@@ -95,14 +95,14 @@
                                     4 => 'bg-emerald-100 text-emerald-800 border-emerald-200',
                                     default => 'bg-stone-100 text-stone-700 border-stone-200'
                                 }; ?>
-                                <span class="inline-block px-2.5 py-1 rounded-full text-[10px] font-bold border uppercase tracking-wider <?= $badge ?>">
+                                <span data-order-badge class="inline-block px-2.5 py-1 rounded-full text-[10px] font-bold border uppercase tracking-wider <?= $badge ?>">
                                     <?= e($order['status_name'] ?? 'Pending') ?>
                                 </span>
                             </td>
                             <td class="px-5 py-3 text-right">
-                                <form action="<?= url('/admin/orders/status') ?>" method="POST" class="inline-block">
+                                <form action="<?= url('/admin/orders/status') ?>" method="POST" data-ajax="true" data-alert-target="#portal-ajax-alert" class="inline-block admin-order-status-form">
                                     <input type="hidden" name="order_id" value="<?= (int)$order['id'] ?>">
-                                    <select name="status_id" onchange="this.form.submit()"
+                                    <select name="status_id" onchange="$(this.form).trigger('submit')"
                                             class="text-xs bg-stone-50 border border-stone-300 rounded-lg px-2 py-1 focus:outline-none focus:ring-1 focus:ring-amber-700">
                                         <option value="" disabled selected>Change...</option>
                                         <?php foreach ($statuses as $stat): ?>
@@ -120,5 +120,27 @@
         </table>
     </div>
 </div>
+
+<script>
+$(document).ready(function() {
+    const badgeStyles = {
+        1: 'bg-amber-100 text-amber-800 border-amber-200',
+        2: 'bg-orange-100 text-orange-800 border-orange-200',
+        3: 'bg-blue-100 text-blue-800 border-blue-200',
+        4: 'bg-emerald-100 text-emerald-800 border-emerald-200'
+    };
+    $(document).on('ajax:success', '.admin-order-status-form', function(e, res) {
+        if (!res || !res.status_id) return;
+        const $row = $(this).closest('tr');
+        const $badge = $row.find('[data-order-badge]');
+        $badge
+            .removeClass('bg-amber-100 text-amber-800 border-amber-200 bg-orange-100 text-orange-800 border-orange-200 bg-blue-100 text-blue-800 border-blue-200 bg-emerald-100 text-emerald-800 border-emerald-200 bg-stone-100 text-stone-700 border-stone-200')
+            .addClass(badgeStyles[res.status_id] || 'bg-stone-100 text-stone-700 border-stone-200')
+            .text(res.status_name);
+        $(this).find('select option').prop('disabled', false);
+        $(this).find('select option[value="' + res.status_id + '"]').prop('disabled', true);
+    });
+});
+</script>
 
 <?php require_once dirname(__DIR__) . '/layouts/admin_footer.php'; ?>

@@ -7,5 +7,6 @@
             <p>All baking batches tracked in real-time</p>
         </div>
     </footer>
+    <script src="<?= asset('assets/js/main.js') ?>?v=<?= time() ?>"></script>
 </body>
 </html>

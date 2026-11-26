@@ -79,21 +79,33 @@ class AdminController extends Controller {
         $roleId = (int)($_POST['role_id'] ?? 0);
 
         if ($userId <= 0 || $roleId <= 0) {
-            flash('error', 'Invalid user or role selection.');
+            $err = 'Invalid user or role selection.';
+            if ($this->isAjax()) {
+                $this->json(['success' => false, 'error' => $err], 400);
+            }
+            flash('error', $err);
             $this->redirect('/admin/users');
             return;
         }
 
         // Safety: Prevent admin from accidentally demoting their own current session
         if ($userId === Session::id() && $roleId !== 3) {
-            flash('error', 'Safety protection: You cannot demote your own administrator account while logged in.');
+            $err = 'Safety protection: You cannot demote your own administrator account while logged in.';
+            if ($this->isAjax()) {
+                $this->json(['success' => false, 'error' => $err], 403);
+            }
+            flash('error', $err);
             $this->redirect('/admin/users');
             return;
         }
 
         $targetUser = $this->userModel->findById($userId);
         if (!$targetUser) {
-            flash('error', 'User not found.');
+            $err = 'User not found.';
+            if ($this->isAjax()) {
+                $this->json(['success' => false, 'error' => $err], 404);
+            }
+            flash('error', $err);
             $this->redirect('/admin/users');
             return;
         }
@@ -102,9 +114,17 @@ class AdminController extends Controller {
         if ($success) {
             $roleNames = [1 => 'Customer', 2 => 'Baker', 3 => 'Admin'];
             $newRoleName = $roleNames[$roleId] ?? "Role #{$roleId}";
-            flash('success', "Updated role for '{$targetUser['full_name']}' to {$newRoleName}!");
+            $msg = "Updated role for '{$targetUser['full_name']}' to {$newRoleName}!";
+            if ($this->isAjax()) {
+                $this->json(['success' => true, 'message' => $msg, 'user_id' => $userId, 'role_id' => $roleId, 'role_name' => $newRoleName]);
+            }
+            flash('success', $msg);
         } else {
-            flash('error', 'Failed to update user role.');
+            $err = 'Failed to update user role.';
+            if ($this->isAjax()) {
+                $this->json(['success' => false, 'error' => $err], 500);
+            }
+            flash('error', $err);
         }
 
         $this->redirect('/admin/users');
@@ -119,27 +139,28 @@ class AdminController extends Controller {
         $password = $_POST['password'] ?? '';
         $roleId = (int)($_POST['role_id'] ?? 1);
 
-        if (empty($fullName) || empty($email) || empty($password)) {
-            flash('error', 'All fields are required.');
-            $this->redirect('/admin/users');
-            return;
+        $errors = [];
+        if ($fullName === '') {
+            $errors['full_name'] = 'Full name is required.';
+        }
+        if ($email === '') {
+            $errors['email'] = 'Email address is required.';
+        } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            $errors['email'] = 'Enter a valid email address.';
+        } elseif ($this->userModel->findByEmail($email)) {
+            $errors['email'] = 'Email already exists.';
+        }
+        if ($password === '') {
+            $errors['password'] = 'Password is required.';
+        } elseif (strlen($password) < 6) {
+            $errors['password'] = 'Password must be at least 6 characters.';
         }
 
-        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            flash('error', 'Please enter a valid email address.');
-            $this->redirect('/admin/users');
-            return;
-        }
-
-        if (strlen($password) < 6) {
-            flash('error', 'Password must be at least 6 characters long.');
-            $this->redirect('/admin/users');
-            return;
-        }
-
-        $existing = $this->userModel->findByEmail($email);
-        if ($existing) {
-            flash('error', 'A user with this email address already exists.');
+        if (!empty($errors)) {
+            if ($this->isAjax()) {
+                $this->json(['success' => false, 'errors' => $errors, 'error' => reset($errors)], 400);
+            }
+            flash('error', implode(' ', $errors));
             $this->redirect('/admin/users');
             return;
         }
@@ -148,9 +169,18 @@ class AdminController extends Controller {
         $created = $this->userModel->create($fullName, $email, $hashedPassword, $roleId);
 
         if ($created) {
-            flash('success', "Account for '{$fullName}' created successfully!");
+            $msg = "Account for '{$fullName}' created successfully!";
+            if ($this->isAjax()) {
+                flash('success', $msg);
+                $this->json(['success' => true, 'message' => $msg, 'redirect' => url('/admin/users')]);
+            }
+            flash('success', $msg);
         } else {
-            flash('error', 'Failed to create user account.');
+            $err = 'Failed to create user account.';
+            if ($this->isAjax()) {
+                $this->json(['success' => false, 'error' => $err], 500);
+            }
+            flash('error', $err);
         }
 
         $this->redirect('/admin/users');
@@ -163,23 +193,39 @@ class AdminController extends Controller {
         $userId = (int)($_POST['user_id'] ?? 0);
 
         if ($userId <= 0) {
-            flash('error', 'Invalid user.');
+            $err = 'Invalid user.';
+            if ($this->isAjax()) {
+                $this->json(['success' => false, 'error' => $err], 400);
+            }
+            flash('error', $err);
             $this->redirect('/admin/users');
             return;
         }
 
         // Safety: Cannot delete self
         if ($userId === Session::id()) {
-            flash('error', 'You cannot delete your own account while logged in.');
+            $err = 'You cannot delete your own account while logged in.';
+            if ($this->isAjax()) {
+                $this->json(['success' => false, 'error' => $err], 403);
+            }
+            flash('error', $err);
             $this->redirect('/admin/users');
             return;
         }
 
         $deleted = $this->userModel->delete($userId);
         if ($deleted) {
-            flash('success', 'User removed successfully.');
+            $msg = 'User removed successfully.';
+            if ($this->isAjax()) {
+                $this->json(['success' => true, 'message' => $msg, 'user_id' => $userId]);
+            }
+            flash('success', $msg);
         } else {
-            flash('error', 'Could not delete user account.');
+            $err = 'Could not delete user account.';
+            if ($this->isAjax()) {
+                $this->json(['success' => false, 'error' => $err], 500);
+            }
+            flash('error', $err);
         }
 
         $this->redirect('/admin/users');
@@ -211,16 +257,35 @@ class AdminController extends Controller {
         $statusId = (int)($_POST['status_id'] ?? 0);
 
         if ($orderId <= 0 || $statusId <= 0) {
-            flash('error', 'Invalid order or status.');
+            $err = 'Invalid order or status.';
+            if ($this->isAjax()) {
+                $this->json(['success' => false, 'error' => $err], 400);
+            }
+            flash('error', $err);
             $this->redirect('/admin/orders');
             return;
         }
 
         $updated = $this->orderModel->updateStatus($orderId, $statusId);
         if ($updated) {
-            flash('success', "Order #{$orderId} status updated.");
+            $statusLabels = [
+                1 => 'Pending',
+                2 => 'Baking',
+                3 => 'Ready for Delivery',
+                4 => 'Completed',
+            ];
+            $statusName = $statusLabels[$statusId] ?? "Status #{$statusId}";
+            $msg = "Order #{$orderId} status updated to {$statusName}.";
+            if ($this->isAjax()) {
+                $this->json(['success' => true, 'message' => $msg, 'order_id' => $orderId, 'status_id' => $statusId, 'status_name' => $statusName]);
+            }
+            flash('success', $msg);
         } else {
-            flash('error', 'Failed to update order status.');
+            $err = 'Failed to update order status.';
+            if ($this->isAjax()) {
+                $this->json(['success' => false, 'error' => $err], 500);
+            }
+            flash('error', $err);
         }
 
         $this->redirect('/admin/orders');
@@ -258,8 +323,19 @@ class AdminController extends Controller {
         $isActive = isset($_POST['is_active']) ? 1 : 0;
         $availability = isset($_POST['availability']) ? 1 : 0;
 
-        if (empty($name)) {
-            flash('error', 'Product name is required.');
+        $errors = [];
+        if ($name === '') {
+            $errors['name'] = 'Product name is required.';
+        }
+        if ($imageUrl === '') {
+            $errors['image_url'] = 'Image URL is required.';
+        }
+
+        if (!empty($errors)) {
+            if ($this->isAjax()) {
+                $this->json(['success' => false, 'errors' => $errors, 'error' => reset($errors)], 400);
+            }
+            flash('error', implode(' ', $errors));
             $this->redirect('/admin/products');
             return;
         }
@@ -276,12 +352,21 @@ class AdminController extends Controller {
 
         if ($id > 0) {
             $saved = $this->productModel->updateProduct($id, $data);
-            flash($saved ? 'success' : 'error', $saved ? "Updated '{$name}'!" : 'Failed to update product.');
+            $msg = $saved ? "Updated '{$name}'!" : 'Failed to update product.';
         } else {
             $saved = $this->productModel->createProduct($data);
-            flash($saved ? 'success' : 'error', $saved ? "Created new item '{$name}'!" : 'Failed to create product.');
+            $msg = $saved ? "Created new item '{$name}'!" : 'Failed to create product.';
         }
 
+        if ($this->isAjax()) {
+            if ($saved) {
+                flash('success', $msg);
+                $this->json(['success' => true, 'message' => $msg, 'redirect' => url('/admin/products')]);
+            }
+            $this->json(['success' => false, 'error' => $msg], 500);
+        }
+
+        flash($saved ? 'success' : 'error', $msg);
         $this->redirect('/admin/products');
     }
 
@@ -291,13 +376,24 @@ class AdminController extends Controller {
     public function deleteProduct(): void {
         $id = (int)($_POST['id'] ?? 0);
         if ($id <= 0) {
-            flash('error', 'Invalid product.');
+            $err = 'Invalid product.';
+            if ($this->isAjax()) {
+                $this->json(['success' => false, 'error' => $err], 400);
+            }
+            flash('error', $err);
             $this->redirect('/admin/products');
             return;
         }
 
         $deleted = $this->productModel->deleteProduct($id);
-        flash($deleted ? 'success' : 'error', $deleted ? 'Product deleted.' : 'Failed to delete product.');
+        $msg = $deleted ? 'Product deleted.' : 'Failed to delete product.';
+        if ($this->isAjax()) {
+            if ($deleted) {
+                $this->json(['success' => true, 'message' => $msg, 'id' => $id]);
+            }
+            $this->json(['success' => false, 'error' => $msg], 500);
+        }
+        flash($deleted ? 'success' : 'error', $msg);
         $this->redirect('/admin/products');
     }
 

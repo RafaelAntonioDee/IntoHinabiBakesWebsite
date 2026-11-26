@@ -6,21 +6,25 @@ $addressCount = count($addresses);
 <main class="max-w-2xl mx-auto px-4 py-12 flex-grow w-full">
     <div class="bg-white p-8 rounded-lg shadow-md border border-amber-100">
         <div class="flex items-center space-x-4 mb-6">
-            <div class="w-16 h-16 bg-amber-800 text-white text-2xl font-bold flex items-center justify-center rounded-full shadow-inner">
+            <div id="profile-avatar-initial" class="w-16 h-16 bg-amber-800 text-white text-2xl font-bold flex items-center justify-center rounded-full shadow-inner">
                 <?= strtoupper(substr($user['full_name'] ?? 'U', 0, 1)) ?>
             </div>
             <div>
-                <h1 class="text-2xl font-bold text-amber-900"><?= e($user['full_name']) ?></h1>
+                <h1 id="profile-header-name" class="text-2xl font-bold text-amber-900"><?= e($user['full_name']) ?></h1>
                 <p class="text-gray-500 text-sm">Account Dashboard</p>
             </div>
         </div>
 
-        <div class="divide-y divide-amber-100/80 border-t border-amber-100 pt-2" x-data="{ editingName: false, editingEmail: false, editingPhone: false }">
+        <div id="profile-ajax-alert" class="hidden mb-4"></div>
+
+        <div class="divide-y divide-amber-100/80 border-t border-amber-100 pt-2"
+             x-data="{ editingName: false, editingEmail: false, editingPhone: false }"
+             @profile-field-saved.window="if ($event.detail === 'name') editingName = false; if ($event.detail === 'email') editingEmail = false; if ($event.detail === 'phone') editingPhone = false;">
             <!-- Full Name -->
             <div class="py-3.5">
                 <label class="block text-xs font-semibold text-gray-500 uppercase mb-1">Full Name</label>
                 <div x-show="!editingName" class="flex items-center justify-between gap-4">
-                    <p class="text-base sm:text-lg font-medium text-gray-800"><?= e($user['full_name']) ?></p>
+                    <p id="profile-display-name" class="text-base sm:text-lg font-medium text-gray-800"><?= e($user['full_name']) ?></p>
                     <button
                         type="button"
                         @click="editingName = true; editingEmail = false; editingPhone = false"
@@ -29,14 +33,17 @@ $addressCount = count($addresses);
                         Edit
                     </button>
                 </div>
-                <form x-show="editingName" x-cloak action="<?= url('/profile/name') ?>" method="POST" class="flex flex-col sm:flex-row gap-2 max-w-md mt-1">
-                    <input
-                        type="text"
-                        name="full_name"
-                        value="<?= e($user['full_name']) ?>"
-                        required
-                        class="flex-1 px-3.5 py-2 text-sm bg-gray-50 border border-gray-300 rounded-lg focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-700 focus:border-amber-700 transition"
-                    >
+                <form id="profile-name-form" action="<?= url('/profile/name') ?>" method="POST" data-ajax="true" data-alert-target="#profile-ajax-alert" novalidate x-show="editingName" x-cloak class="flex flex-col sm:flex-row sm:items-start gap-2 max-w-md mt-1">
+                    <div class="flex-1">
+                        <input
+                            type="text"
+                            name="full_name"
+                            value="<?= e($user['full_name']) ?>"
+                            placeholder="e.g. Juan Dela Cruz"
+                            required
+                            class="w-full px-3.5 py-2 text-sm bg-gray-50 border border-gray-300 rounded-lg focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-700 focus:border-amber-700 transition"
+                        >
+                    </div>
                     <div class="flex items-center gap-2">
                         <button
                             type="submit"
@@ -59,7 +66,7 @@ $addressCount = count($addresses);
             <div class="py-3.5">
                 <label class="block text-xs font-semibold text-gray-500 uppercase mb-1">Email Address</label>
                 <div x-show="!editingEmail" class="flex items-center justify-between gap-4">
-                    <p class="text-base sm:text-lg font-medium text-gray-800 truncate"><?= e($user['email']) ?></p>
+                    <p id="profile-display-email" class="text-base sm:text-lg font-medium text-gray-800 truncate"><?= e($user['email']) ?></p>
                     <button
                         type="button"
                         @click="editingEmail = true; editingName = false; editingPhone = false"
@@ -68,14 +75,17 @@ $addressCount = count($addresses);
                         Edit
                     </button>
                 </div>
-                <form x-show="editingEmail" x-cloak action="<?= url('/profile/email') ?>" method="POST" class="flex flex-col sm:flex-row gap-2 max-w-md mt-1">
-                    <input
-                        type="email"
-                        name="email"
-                        value="<?= e($user['email']) ?>"
-                        required
-                        class="flex-1 px-3.5 py-2 text-sm bg-gray-50 border border-gray-300 rounded-lg focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-700 focus:border-amber-700 transition"
-                    >
+                <form id="profile-email-form" x-show="editingEmail" x-cloak action="<?= url('/profile/email') ?>" method="POST" data-ajax="true" data-alert-target="#profile-ajax-alert" novalidate class="flex flex-col sm:flex-row sm:items-start gap-2 max-w-md mt-1">
+                    <div class="flex-1">
+                        <input
+                            type="email"
+                            name="email"
+                            value="<?= e($user['email']) ?>"
+                            placeholder="e.g. juan@example.com"
+                            required
+                            class="w-full px-3.5 py-2 text-sm bg-gray-50 border border-gray-300 rounded-lg focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-700 focus:border-amber-700 transition"
+                        >
+                    </div>
                     <div class="flex items-center gap-2">
                         <button
                             type="submit"
@@ -98,7 +108,7 @@ $addressCount = count($addresses);
             <div class="py-3.5">
                 <label class="block text-xs font-semibold text-gray-500 uppercase mb-1">Phone Number</label>
                 <div x-show="!editingPhone" class="flex items-center justify-between gap-4">
-                    <p class="text-base sm:text-lg font-medium text-gray-800">
+                    <p id="profile-display-phone" class="text-base sm:text-lg font-medium text-gray-800">
                         <?= !empty($user['phone_number']) ? e($user['phone_number']) : '<span class="text-gray-400 italic text-base">Not set</span>' ?>
                     </p>
                     <button
@@ -109,20 +119,22 @@ $addressCount = count($addresses);
                         Edit
                     </button>
                 </div>
-                <form x-show="editingPhone" x-cloak action="<?= url('/profile/phone') ?>" method="POST" class="flex flex-col sm:flex-row gap-2 max-w-md mt-1">
-                    <input
-                        type="tel"
-                        name="phone_number"
-                        value="<?= e($user['phone_number'] ?? '') ?>"
-                        placeholder="e.g. 0917 123 4567"
-                        inputmode="tel"
-                        minlength="10"
-                        maxlength="16"
-                        pattern="(09[\d\s\-]{9,12}|(\+?63)9[\d\s\-]{9,12}|0[2-8][\d\s\-()]{7,12})"
-                        title="Enter a valid PH mobile (11 digits, e.g. 09171234567 or +639171234567) or landline number"
-                        required
-                        class="flex-1 px-3.5 py-2 text-sm bg-gray-50 border border-gray-300 rounded-lg focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-700 focus:border-amber-700 transition"
-                    >
+                <form id="profile-phone-form" x-show="editingPhone" x-cloak action="<?= url('/profile/phone') ?>" method="POST" data-ajax="true" data-alert-target="#profile-ajax-alert" novalidate class="flex flex-col sm:flex-row sm:items-start gap-2 max-w-md mt-1">
+                    <div class="flex-1">
+                        <input
+                            type="tel"
+                            name="phone_number"
+                            value="<?= e($user['phone_number'] ?? '') ?>"
+                            placeholder="e.g. 0917 123 4567"
+                            inputmode="tel"
+                            minlength="10"
+                            maxlength="16"
+                            pattern="(09[\d\s\-]{9,12}|(\+?63)9[\d\s\-]{9,12}|0[2-8][\d\s\-()]{7,12})"
+                            title="Enter a valid PH mobile (11 digits, e.g. 09171234567 or +639171234567) or landline number"
+                            required
+                            class="w-full px-3.5 py-2 text-sm bg-gray-50 border border-gray-300 rounded-lg focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-700 focus:border-amber-700 transition"
+                        >
+                    </div>
                     <div class="flex items-center gap-2">
                         <button
                             type="submit"
@@ -254,39 +266,69 @@ $addressCount = count($addresses);
 </main>
 
 <script>
+$(document).ready(function() {
+    $('#profile-name-form').on('ajax:success', function(e, res) {
+        if (res && res.full_name) {
+            $('#profile-display-name, #profile-header-name').text(res.full_name);
+            $('#profile-avatar-initial').text(res.full_name.charAt(0).toUpperCase());
+            window.dispatchEvent(new CustomEvent('profile-field-saved', { detail: 'name' }));
+        }
+    });
+
+    $('#profile-email-form').on('ajax:success', function(e, res) {
+        if (res && res.email) {
+            $('#profile-display-email').text(res.email);
+            window.dispatchEvent(new CustomEvent('profile-field-saved', { detail: 'email' }));
+        }
+    });
+
+    $('#profile-phone-form').on('ajax:success', function(e, res) {
+        if (res && res.phone_number) {
+            $('#profile-display-phone').text(res.phone_number);
+            window.dispatchEvent(new CustomEvent('profile-field-saved', { detail: 'phone' }));
+        }
+    });
+});
+
 function setDefaultAddress(addressId) {
-    fetch(<?= json_encode(url('/api/address/default'), JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP) ?>, {
+    $.ajax({
+        url: <?= json_encode(url('/api/address/default'), JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP) ?>,
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-        body: JSON.stringify({ id: addressId })
+        contentType: 'application/json',
+        dataType: 'json',
+        data: JSON.stringify({ id: addressId })
     })
-    .then(res => res.json())
-    .then(data => {
+    .done(function(data) {
         if (data.success) {
             window.location.reload();
         } else {
             alert(data.error || 'Could not update default address.');
         }
     })
-    .catch(() => alert('Could not connect to server.'));
+    .fail(function() {
+        alert('Could not connect to server.');
+    });
 }
 
 function deleteSavedAddress(addressId) {
     if (!confirm('Are you sure you want to delete this delivery address?')) return;
 
-    fetch(<?= json_encode(url('/api/address/delete'), JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP) ?>, {
+    $.ajax({
+        url: <?= json_encode(url('/api/address/delete'), JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP) ?>,
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-        body: JSON.stringify({ id: addressId })
+        contentType: 'application/json',
+        dataType: 'json',
+        data: JSON.stringify({ id: addressId })
     })
-    .then(res => res.json())
-    .then(data => {
+    .done(function(data) {
         if (data.success) {
             window.location.reload();
         } else {
             alert(data.error || 'Could not delete address.');
         }
     })
-    .catch(() => alert('Could not connect to server.'));
+    .fail(function() {
+        alert('Could not connect to server.');
+    });
 }
 </script>

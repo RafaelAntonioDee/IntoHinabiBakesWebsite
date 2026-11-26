@@ -7,6 +7,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <link rel="stylesheet" href="<?= asset('assets/css/custom.css') ?>">
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
 </head>
 <body class="flex flex-col min-h-screen bg-amber-50/30 text-stone-800">
 
@@ -37,6 +38,7 @@
                 <button onclick="this.parentElement.remove()" class="text-rose-700 hover:text-rose-900 ml-4">&times;</button>
             </div>
         <?php endif; ?>
+        <div id="portal-ajax-alert" class="hidden mt-3"></div>
     </div>
 
     <!-- Main Content -->

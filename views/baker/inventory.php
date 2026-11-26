@@ -80,7 +80,7 @@
                 </div>
                 <!-- Toggle Action -->
                 <div class="p-5 pt-0">
-                    <form action="<?= url('/baker/inventory/toggle') ?>" method="POST">
+                    <form action="<?= url('/baker/inventory/toggle') ?>" method="POST" data-ajax="true" data-alert-target="#portal-ajax-alert" class="baker-toggle-stock-form">
                         <input type="hidden" name="product_id" value="<?= (int)$item['id'] ?>">
                         <?php if ($isAvailable): ?>
                             <button type="submit" class="w-full bg-white hover:bg-rose-50 text-rose-700 hover:text-rose-800 border border-rose-300 font-bold py-2 px-4 rounded-xl text-xs transition flex items-center justify-center gap-1.5 cursor-pointer">
@@ -99,5 +99,25 @@
         <?php endforeach; ?>
     <?php endif; ?>
 </div>
+
+<script>
+$(document).ready(function() {
+    $(document).on('ajax:success', '.baker-toggle-stock-form', function(e, res) {
+        if (!res) return;
+        const $btn = $(this).find('button[type="submit"]');
+        if (res.availability) {
+            $btn
+                .removeClass('bg-emerald-600 hover:bg-emerald-700 text-white shadow')
+                .addClass('bg-white hover:bg-rose-50 text-rose-700 hover:text-rose-800 border border-rose-300')
+                .html('<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg> Mark as Sold Out');
+        } else {
+            $btn
+                .removeClass('bg-white hover:bg-rose-50 text-rose-700 hover:text-rose-800 border border-rose-300')
+                .addClass('bg-emerald-600 hover:bg-emerald-700 text-white shadow')
+                .html('<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg> Mark as In Stock');
+        }
+    });
+});
+</script>
 
 <?php require_once dirname(__DIR__) . '/layouts/baker_footer.php'; ?>
