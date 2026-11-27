@@ -29,7 +29,7 @@
         </div>
         <div>
             <div class="text-[11px] uppercase tracking-wider text-stone-500 font-semibold">Total Revenue</div>
-            <div class="text-2xl font-black text-stone-900">$<?= number_format((float)($orderStats['total_revenue'] ?? 0), 2) ?></div>
+            <div class="text-2xl font-black text-stone-900">₱<?= number_format((float)($orderStats['total_revenue'] ?? 0), 2) ?></div>
             <div class="text-xs text-emerald-600 font-medium mt-0.5">Across all paid orders</div>
         </div>
     </div>
@@ -115,7 +115,7 @@
                             <tr class="hover:bg-amber-50/40 transition">
                                 <td class="px-5 py-3 font-bold text-stone-900">#<?= e($order['order_number'] ?: $order['id']) ?></td>
                                 <td class="px-5 py-3 font-medium"><?= e($order['customer_name'] ?? 'Guest') ?></td>
-                                <td class="px-5 py-3 font-mono font-bold text-stone-900">$<?= number_format((float)($order['total_amount'] ?? 0), 2) ?></td>
+                                <td class="px-5 py-3 font-mono font-bold text-stone-900">₱<?= number_format((float)($order['total_amount'] ?? 0), 2) ?></td>
                                 <td class="px-5 py-3">
                                     <?php $badge = match($st) {
                                         1 => 'bg-amber-100 text-amber-800',

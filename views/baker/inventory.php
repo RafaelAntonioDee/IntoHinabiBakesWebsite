@@ -73,7 +73,7 @@
                     <div class="p-5">
                         <div class="flex justify-between items-start mb-2">
                             <h3 class="font-bold text-stone-900 text-base leading-snug"><?= e($item['name']) ?></h3>
-                            <span class="font-extrabold text-amber-900 text-sm ml-2 font-mono">$<?= number_format((float)($item['price'] ?? 0), 2) ?></span>
+                            <span class="font-extrabold text-amber-900 text-sm ml-2 font-mono">₱<?= number_format((float)($item['price'] ?? 0), 2) ?></span>
                         </div>
                         <p class="text-xs text-stone-500 line-clamp-2 mb-3"><?= e($item['description'] ?? '') ?></p>
                     </div>

@@ -283,12 +283,13 @@ class Product extends Model {
     public function createProduct(array $data): bool {
         if ($this->db === null) return false;
         try {
-            $sql = "INSERT INTO products (name, description, category_id, price, image_url, is_active, availability) 
-                    VALUES (:name, :description, :category_id, :price, :image_url, :is_active, :availability)";
+            $sql = "INSERT INTO products (name, description, allergens, category_id, price, image_url, is_active, availability, created_at) 
+                    VALUES (:name, :description, :allergens, :category_id, :price, :image_url, :is_active, :availability, CURRENT_TIMESTAMP)";
             $stmt = $this->db->prepare($sql);
             return $stmt->execute([
                 ':name'         => $data['name'],
                 ':description'  => $data['description'] ?? '',
+                ':allergens'    => $data['allergens'] ?? '',
                 ':category_id'  => $data['category_id'] ?? 1,
                 ':price'        => $data['price'] ?? 0.00,
                 ':image_url'    => $data['image_url'] ?? '',
@@ -309,6 +310,7 @@ class Product extends Model {
             $sql = "UPDATE products 
                     SET name = :name, 
                         description = :description, 
+                        allergens = :allergens, 
                         category_id = :category_id, 
                         price = :price, 
                         image_url = :image_url, 
@@ -319,6 +321,7 @@ class Product extends Model {
             return $stmt->execute([
                 ':name'         => $data['name'],
                 ':description'  => $data['description'] ?? '',
+                ':allergens'    => $data['allergens'] ?? '',
                 ':category_id'  => $data['category_id'] ?? 1,
                 ':price'        => $data['price'] ?? 0.00,
                 ':image_url'    => $data['image_url'] ?? '',

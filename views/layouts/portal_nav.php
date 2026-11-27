@@ -86,37 +86,34 @@ $_isLoggedIn  = \App\Core\Session::check();
                             </div>
 
                             <!-- Option 1: Storefront View -->
-                            <button type="button"
-                                    @click="currentView = 'storefront'; viewOpen = false"
-                                    class="w-full text-left flex items-center gap-2.5 px-3.5 py-2 text-sm transition cursor-pointer hover:bg-amber-50"
-                                    :class="currentView === 'storefront' ? 'bg-amber-50 font-bold text-amber-900' : 'text-stone-700'">
+                            <a href="<?= url('/') ?>"
+                               class="w-full text-left flex items-center gap-2.5 px-3.5 py-2 text-sm transition cursor-pointer hover:bg-amber-50"
+                               :class="currentView === 'storefront' ? 'bg-amber-50 font-bold text-amber-900' : 'text-stone-700'">
                                 <svg class="w-4 h-4 text-amber-700 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12l8.954-8.955a1.126 1.126 0 011.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25"/></svg>
                                 <span>Storefront</span>
                                 <span x-show="currentView === 'storefront'" class="ml-auto text-xs text-amber-700 font-bold">✓</span>
-                            </button>
+                            </a>
 
                             <!-- Option 2: Baker View -->
                             <?php if ($_userIsStaff): ?>
-                                <button type="button"
-                                        @click="currentView = 'baker'; viewOpen = false"
-                                        class="w-full text-left flex items-center gap-2.5 px-3.5 py-2 text-sm transition cursor-pointer hover:bg-amber-50"
-                                        :class="currentView === 'baker' ? 'bg-amber-50 font-bold text-amber-900' : 'text-stone-700'">
+                                <a href="<?= url('/baker') ?>"
+                                   class="w-full text-left flex items-center gap-2.5 px-3.5 py-2 text-sm transition cursor-pointer hover:bg-amber-50"
+                                   :class="currentView === 'baker' ? 'bg-amber-50 font-bold text-amber-900' : 'text-stone-700'">
                                     <svg class="w-4 h-4 text-amber-700 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.362 5.214A8.252 8.252 0 0112 21 8.25 8.25 0 016.038 7.048A8.287 8.287 0 009 9.6a8.983 8.983 0 013.361-6.867 8.21 8.21 0 003 2.48z"/><path stroke-linecap="round" stroke-linejoin="round" d="M12 18a3.75 3.75 0 00.495-7.467 5.99 5.99 0 00-1.925 3.546 5.974 5.974 0 01-2.133-1A3.75 3.75 0 0012 18z"/></svg>
                                     <span>Baker View</span>
                                     <span x-show="currentView === 'baker'" class="ml-auto text-xs text-amber-700 font-bold">✓</span>
-                                </button>
+                                </a>
                             <?php endif; ?>
 
                             <!-- Option 3: Admin View -->
                             <?php if ($_userIsAdmin): ?>
-                                <button type="button"
-                                        @click="currentView = 'admin'; viewOpen = false"
-                                        class="w-full text-left flex items-center gap-2.5 px-3.5 py-2 text-sm transition cursor-pointer hover:bg-amber-50"
-                                        :class="currentView === 'admin' ? 'bg-amber-50 font-bold text-amber-900' : 'text-stone-700'">
+                                <a href="<?= url('/admin') ?>"
+                                   class="w-full text-left flex items-center gap-2.5 px-3.5 py-2 text-sm transition cursor-pointer hover:bg-amber-50"
+                                   :class="currentView === 'admin' ? 'bg-amber-50 font-bold text-amber-900' : 'text-stone-700'">
                                     <svg class="w-4 h-4 text-amber-700 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.325.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.241-.438.613-.43.992a7.723 7.723 0 010 .255c-.008.378.137.75.43.991l1.004.827c.424.35.534.955.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.47 6.47 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.281c-.09.543-.56.94-1.11.94h-2.594c-.55 0-1.019-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.43-.991a6.932 6.932 0 010-.255c.007-.38-.138-.751-.43-.992l-1.004-.827a1.125 1.125 0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.086.22-.128.332-.183.582-.495.644-.869l.214-1.28z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                                     <span>Admin View</span>
                                     <span x-show="currentView === 'admin'" class="ml-auto text-xs text-amber-700 font-bold">✓</span>
-                                </button>
+                                </a>
                             <?php endif; ?>
                         </div>
                     </div>
@@ -247,10 +244,10 @@ $_isLoggedIn  = \App\Core\Session::check();
                 <div class="p-2.5 bg-amber-50 rounded-xl space-y-1 mb-2">
                     <p class="text-[10px] font-bold uppercase tracking-wider text-amber-800 px-1">Switch View</p>
                     <div class="flex gap-1.5 overflow-x-auto whitespace-nowrap scrollbar-none pb-0.5">
-                        <button type="button" @click="currentView = 'storefront'" class="px-2.5 py-1 rounded text-xs font-semibold cursor-pointer whitespace-nowrap" :class="currentView === 'storefront' ? 'bg-amber-800 text-white' : 'bg-white text-stone-700'">Storefront</button>
-                        <button type="button" @click="currentView = 'baker'" class="px-2.5 py-1 rounded text-xs font-semibold cursor-pointer whitespace-nowrap" :class="currentView === 'baker' ? 'bg-amber-800 text-white' : 'bg-white text-stone-700'">Baker View</button>
+                        <a href="<?= url('/') ?>" class="px-2.5 py-1 rounded text-xs font-semibold cursor-pointer whitespace-nowrap" :class="currentView === 'storefront' ? 'bg-amber-800 text-white' : 'bg-white text-stone-700'">Storefront</a>
+                        <a href="<?= url('/baker') ?>" class="px-2.5 py-1 rounded text-xs font-semibold cursor-pointer whitespace-nowrap" :class="currentView === 'baker' ? 'bg-amber-800 text-white' : 'bg-white text-stone-700'">Baker View</a>
                         <?php if ($_userIsAdmin): ?>
-                            <button type="button" @click="currentView = 'admin'" class="px-2.5 py-1 rounded text-xs font-semibold cursor-pointer whitespace-nowrap" :class="currentView === 'admin' ? 'bg-amber-800 text-white' : 'bg-white text-stone-700'">Admin View</button>
+                            <a href="<?= url('/admin') ?>" class="px-2.5 py-1 rounded text-xs font-semibold cursor-pointer whitespace-nowrap" :class="currentView === 'admin' ? 'bg-amber-800 text-white' : 'bg-white text-stone-700'">Admin View</a>
                         <?php endif; ?>
                     </div>
                 </div>

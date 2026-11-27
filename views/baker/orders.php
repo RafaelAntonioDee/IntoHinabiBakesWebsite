@@ -114,7 +114,7 @@
                                             <span class="font-medium text-stone-900"><?= e($item['product_name'] ?? 'Custom Item') ?></span>
                                             <span class="text-xs text-stone-400">(<?= e($item['category_name'] ?? 'Bakery') ?>)</span>
                                         </div>
-                                        <span class="text-xs text-stone-500 font-mono">$<?= number_format((float)($item['price'] ?? 0), 2) ?></span>
+                                        <span class="text-xs text-stone-500 font-mono">₱<?= number_format((float)($item['price'] ?? 0), 2) ?></span>
                                     </div>
                                 <?php endforeach; ?>
                             <?php else: ?>

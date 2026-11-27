@@ -12,8 +12,9 @@
             'id'            => $pId,
             'name'          => $p['name'] ?? '',
             'category_id'   => $pCatId,
-            'category_name' => $p['category_name'] ?? ($pCatId == 2 ? 'Cakes' : 'Cookies'),
+            'category_name' => $p['category_name'] ?? ($pCatId == 2 ? 'Mini Cakes' : 'Cookies'),
             'description'   => $p['description'] ?? '',
+            'allergens'     => $p['allergens'] ?? '',
             'price'         => number_format((float)($p['price'] ?? 0), 2),
             'unit'          => $p['unit'] ?? 'each',
             'image_url'     => $p['image_url'] ?? '',
@@ -42,7 +43,7 @@
         <?php foreach ($categories as $cat): ?>
             <?php 
                 $count = count(array_filter($products, fn($p) => ($p['category_id'] ?? null) == $cat['id']));
-                $labelName = ($cat['id'] == 1) ? 'Cookies' : (($cat['id'] == 2) ? 'Cakes' : $cat['category_name']);
+                $labelName = ($cat['id'] == 1) ? 'Cookies' : (($cat['id'] == 2) ? 'Mini Cakes' : $cat['category_name']);
             ?>
             <button class="filter-btn bg-gray-200 text-gray-800 hover:bg-gray-300 px-6 py-2 rounded-full font-medium transition cursor-pointer shadow-sm" data-category-id="<?= e($cat['id']) ?>">
                 <?php if ($cat['id'] == 1): ?>
@@ -166,7 +167,7 @@
 
                     <div class="flex items-center justify-between pt-3 border-t border-amber-50 mt-auto">
                         <span class="text-amber-800 font-extrabold text-lg">
-                            $<?= number_format((float)($item['price'] ?? 0), 2) ?> <span class="text-xs font-normal text-gray-500">/ <?= e($item['unit'] ?? 'each') ?></span>
+                            ₱<?= number_format((float)($item['price'] ?? 0), 2) ?> <span class="text-xs font-normal text-gray-500">/ <?= e($item['unit'] ?? 'each') ?></span>
                         </span>
                         <span class="text-xs font-semibold text-amber-800 group-hover:text-amber-950 flex items-center gap-1 transition-colors">
                             Details

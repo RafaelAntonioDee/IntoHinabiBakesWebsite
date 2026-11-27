@@ -83,7 +83,7 @@
                         </div>
                         <div class="text-right flex-shrink-0">
                             <div class="text-2xl font-black text-amber-800">
-                                $<span x-text="activeProduct ? activeProduct.price : ''"></span>
+                                ₱<span x-text="activeProduct ? activeProduct.price : ''"></span>
                             </div>
                             <div class="text-xs font-medium text-gray-500" x-text="activeProduct ? 'per ' + activeProduct.unit : ''"></div>
                         </div>
@@ -102,52 +102,85 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"/>
                             </svg>
                             <div class="text-xs text-amber-950">
-                                <span class="font-bold">Allergen Caution:</span>
-                                <span class="text-amber-900/90 leading-relaxed block mt-0.5">
-                                    Contains wheat (gluten), dairy (milk, butter), and eggs. Prepared in a bakery environment that also handles tree nuts, peanuts, and soy.
-                                </span>
+                                <span class="font-bold">Allergens:</span>
+                                <template x-if="activeProduct && activeProduct.allergens && activeProduct.allergens.trim() !== ''">
+                                    <span class="font-semibold text-amber-900" x-text="activeProduct.allergens"></span>
+                                </template>
+                                <template x-if="!activeProduct || !activeProduct.allergens || activeProduct.allergens.trim() === ''">
+                                    <span class="text-emerald-800 font-medium block mt-0.5">
+                                        There are no allergens listed for this product.
+                                    </span>
+                                </template>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Bakery Quality Chips -->
-                    <div class="grid grid-cols-2 gap-3 pt-1 text-xs text-gray-700 font-medium">
-                        <div class="flex items-center gap-2 p-2.5 rounded-lg bg-stone-50 border border-stone-200/80">
-                            <svg class="w-4 h-4 text-amber-700 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                            </svg>
-                            <span>Warm hourly tray batch</span>
+                    <!-- Order Options & Add to Cart -->
+                    <div class="pt-3 mt-auto space-y-3 border-t border-amber-100">
+                        <div class="flex items-center justify-between gap-4">
+                            <label for="modal-order-qty" class="text-xs font-bold uppercase tracking-wider text-amber-900">
+                                Quantity
+                            </label>
+                            <div class="inline-flex items-center border border-gray-300 rounded-lg bg-white overflow-hidden">
+                                <button
+                                    type="button"
+                                    @click="orderQuantity = Math.max(1, (parseInt(orderQuantity, 10) || 1) - 1)"
+                                    class="px-3 py-1.5 text-sm font-bold text-gray-700 hover:bg-amber-50 transition cursor-pointer"
+                                    aria-label="Decrease quantity"
+                                >&minus;</button>
+                                <input
+                                    id="modal-order-qty"
+                                    type="text"
+                                    inputmode="numeric"
+                                    x-model.number="orderQuantity"
+                                    @input="orderQuantity = String(orderQuantity).replace(/\D/g, '')"
+                                    @change="orderQuantity = Math.max(1, Math.min(99, parseInt(orderQuantity, 10) || 1))"
+                                    class="w-12 text-center text-sm font-bold text-amber-950 border-x border-gray-200 py-1.5 focus:outline-none"
+                                >
+                                <button
+                                    type="button"
+                                    @click="orderQuantity = Math.min(99, (parseInt(orderQuantity, 10) || 1) + 1)"
+                                    class="px-3 py-1.5 text-sm font-bold text-gray-700 hover:bg-amber-50 transition cursor-pointer"
+                                    aria-label="Increase quantity"
+                                >+</button>
+                            </div>
                         </div>
-                        <div class="flex items-center gap-2 p-2.5 rounded-lg bg-stone-50 border border-stone-200/80">
-                            <svg class="w-4 h-4 text-amber-700 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                            </svg>
-                            <span>100% Real creamery butter</span>
-                        </div>
-                    </div>
 
-                    <!-- Actions -->
-                    <div class="pt-4 mt-auto flex items-center gap-3">
-                        <a 
-                            :href="'<?= url('/contact') ?>?item=' + (activeProduct ? encodeURIComponent(activeProduct.name) : '')" 
-                            class="flex-1 bg-amber-800 hover:bg-amber-900 text-white font-bold py-2.5 px-4 rounded-xl shadow text-sm text-center transition duration-150 cursor-pointer"
+                        <div>
+                            <label for="modal-order-note" class="block text-xs font-bold uppercase tracking-wider text-amber-900 mb-1">
+                                Special Instructions <span class="text-[11px] font-normal normal-case text-gray-500">(Optional)</span>
+                            </label>
+                            <input
+                                id="modal-order-note"
+                                type="text"
+                                x-model="orderNote"
+                                maxlength="150"
+                                placeholder="e.g. Less sweet, gift note, or packaging request"
+                                class="w-full px-3.5 py-2 text-xs border border-gray-300 rounded-lg bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-800 focus:border-amber-800 transition"
+                            >
+                        </div>
+
+                        <button
+                            type="button"
+                            @click="addToCart()"
+                            class="w-full bg-amber-800 hover:bg-amber-900 active:bg-amber-950 text-white font-bold py-3 px-4 rounded-xl shadow text-sm text-center transition duration-150 cursor-pointer flex items-center justify-center gap-2"
                         >
-                            Inquire or Order
-                        </a>
-                        <button 
-                            type="button" 
-                            @click="closeModal()" 
-                            class="px-5 py-2.5 rounded-xl border border-gray-300 hover:bg-gray-100 text-gray-700 font-medium text-sm transition duration-150 cursor-pointer"
-                        >
-                            Close
+                            <svg x-show="!addedToCart" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 00-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 00-16.536-1.84M7.5 14.25L5.106 5.272M6 20.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm12.75 0a.75.75 0 11-1.5 0 .75.75 0 011.5 0z"/>
+                            </svg>
+                            <svg x-show="addedToCart" x-cloak class="w-4 h-4 text-emerald-300" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/>
+                            </svg>
+                            <span x-text="addedToCart ? 'Added to Cart!' : ('Add to Cart · ₱' + ((parseFloat(activeProduct ? activeProduct.price : 0) || 0) * (parseInt(orderQuantity, 10) || 1)).toFixed(2))"></span>
                         </button>
                     </div>
                 </div>
             </div>
 
             <!-- Right Column: Ratings & Reviews -->
-            <div class="w-full md:w-1/2 flex flex-col p-6 sm:p-7 overflow-y-auto bg-amber-50/20">
-                <div class="mb-4">
+            <div class="w-full md:w-1/2 relative bg-amber-50/20">
+                <div class="md:absolute md:inset-0 flex flex-col p-6 sm:p-7">
+                    <div class="mb-4 flex-shrink-0">
                     <div class="flex items-center justify-between mb-3">
                         <h4 class="text-base font-bold text-gray-900">Ratings and reviews</h4>
                         <span class="text-gray-400 hover:text-gray-600 cursor-pointer" title="Verified customer ratings">
@@ -177,9 +210,15 @@
                         </div>
 
                         <!-- Rating Distribution Bars -->
-                        <div class="flex-grow space-y-1.5">
+                        <div class="flex-grow space-y-1">
                             <template x-for="s in [5, 4, 3, 2, 1]" :key="s">
-                                <div class="flex items-center gap-2.5 text-xs text-gray-600 font-medium">
+                                <button
+                                    type="button"
+                                    @click="toggleRatingFilter(s)"
+                                    :class="selectedRatingFilter === s ? 'bg-amber-100/90 ring-1 ring-amber-700' : 'hover:bg-amber-50/80'"
+                                    class="w-full flex items-center gap-2.5 text-xs text-gray-600 font-medium px-1.5 py-0.5 rounded-md transition cursor-pointer"
+                                    :title="'Filter by ' + s + ' star reviews'"
+                                >
                                     <span class="w-2.5 text-right text-gray-700" x-text="s"></span>
                                     <div class="flex-grow h-2.5 bg-gray-200 rounded-full overflow-hidden">
                                         <div 
@@ -188,17 +227,17 @@
                                         ></div>
                                     </div>
                                     <span class="w-5 text-[10px] text-gray-400 text-right" x-text="getSummary().stars && getSummary().stars[s] ? getSummary().stars[s].count : 0"></span>
-                                </div>
+                                </button>
                             </template>
                         </div>
                     </div>
                 </div>
 
                 <!-- Community Reviews List -->
-                <div class="space-y-3 flex-grow overflow-y-auto pr-1 max-h-44 mb-5">
+                <div class="space-y-3 flex-1 min-h-0 max-h-64 md:max-h-none overflow-y-auto pr-1 mb-4">
                     <template x-if="getReviews().length === 0">
                         <div class="text-center py-6 text-xs text-gray-500">
-                            No reviews yet. Be the first to share your experience with this treat!
+                            <span x-text="selectedRatingFilter ? ('No ' + selectedRatingFilter + '-star reviews yet.') : 'No reviews yet. Be the first to share your experience with this treat!'"></span>
                         </div>
                     </template>
 
@@ -232,7 +271,7 @@
 
                 <!-- Review Submission Section -->
                 <template x-if="isLoggedIn">
-                    <div class="mt-auto pt-4 border-t border-amber-200/60 space-y-3">
+                    <div class="mt-auto pt-4 border-t border-amber-200/60 space-y-3 flex-shrink-0">
                         <div class="flex items-center justify-between">
                             <div>
                                 <span class="text-sm font-bold text-amber-950 block" x-text="getSummary().user_review ? 'Update your review' : 'Review this product'"></span>
@@ -290,7 +329,7 @@
 
                 <!-- Sign-in Prompt for Guests -->
                 <template x-if="!isLoggedIn">
-                    <div class="mt-auto pt-4 border-t border-amber-200/60">
+                    <div class="mt-auto pt-4 border-t border-amber-200/60 flex-shrink-0">
                         <div class="p-4 rounded-xl bg-amber-50/70 border border-amber-200/80 text-center space-y-2">
                             <div class="text-xs font-bold text-amber-950">Want to rate or review this treat?</div>
                             <p class="text-xs text-stone-600">Please sign in to your account to share your experience with our bakery.</p>
@@ -306,6 +345,7 @@
                         </div>
                     </div>
                 </template>
+                </div>
             </div>
         </div>
     </div>
@@ -317,6 +357,10 @@ function productCatalog() {
         activeProduct: null,
         userRating: 5,
         hoverRating: 0,
+        selectedRatingFilter: null,
+        orderQuantity: 1,
+        orderNote: '',
+        addedToCart: false,
         loggedInUser: <?= json_encode($sessionUser) ?>,
         loggedInUserId: <?= json_encode($sessionUserId) ?>,
         isLoggedIn: <?= json_encode($isLoggedIn) ?>,
@@ -350,13 +394,54 @@ function productCatalog() {
         },
 
         getReviews() {
-            return this.getSummary().reviews || [];
+            const reviews = this.getSummary().reviews || [];
+            if (this.selectedRatingFilter === null) {
+                return reviews;
+            }
+            return reviews.filter(r => Number(r.rating) === Number(this.selectedRatingFilter));
+        },
+
+        toggleRatingFilter(star) {
+            this.selectedRatingFilter = (this.selectedRatingFilter === star) ? null : star;
+        },
+
+        addToCart() {
+            if (!this.activeProduct) return;
+            const qty = Math.max(1, Math.min(99, parseInt(this.orderQuantity, 10) || 1));
+            const note = (this.orderNote || '').trim();
+            let cart = [];
+            try {
+                cart = JSON.parse(localStorage.getItem('hinabi_cart') || '[]');
+            } catch (e) {
+                cart = [];
+            }
+            const existing = cart.find(item => Number(item.id) === Number(this.activeProduct.id) && (item.note || '') === note);
+            if (existing) {
+                existing.quantity = (existing.quantity || 1) + qty;
+            } else {
+                cart.push({
+                    id: this.activeProduct.id,
+                    name: this.activeProduct.name,
+                    price: parseFloat(this.activeProduct.price) || 0,
+                    image_url: this.activeProduct.image_url,
+                    quantity: qty,
+                    note: note
+                });
+            }
+            localStorage.setItem('hinabi_cart', JSON.stringify(cart));
+            window.dispatchEvent(new CustomEvent('cart-updated', { detail: cart }));
+            this.addedToCart = true;
+            setTimeout(() => { this.addedToCart = false; }, 1500);
         },
 
         openModal(productId) {
             const product = this.productsMap[productId] || null;
             if (!product) return;
             this.activeProduct = product;
+            this.selectedRatingFilter = null;
+            this.orderQuantity = 1;
+            this.orderNote = '';
+            this.addedToCart = false;
             const summary = this.getSummary();
             if (summary && summary.user_review) {
                 this.userRating = summary.user_review.rating || 5;

@@ -85,6 +85,10 @@ function deliveryAddressModalManager() {
         resetForm(addressData = null) {
             this.errorMessage = '';
             if (addressData && typeof addressData === 'object') {
+                const parsedLat = parseFloat(addressData.latitude ?? addressData.lat);
+                const parsedLng = parseFloat(addressData.longitude ?? addressData.lng);
+                this.lat = Number.isFinite(parsedLat) ? parsedLat : 14.5995;
+                this.lng = Number.isFinite(parsedLng) ? parsedLng : 120.9842;
                 this.form = {
                     id: addressData.id || null,
                     recipient_name: addressData.recipient_name || config.defaultRecipientName || '',
@@ -96,6 +100,8 @@ function deliveryAddressModalManager() {
                     is_default: Boolean(addressData.is_default)
                 };
             } else {
+                this.lat = 14.5995;
+                this.lng = 120.9842;
                 this.form = {
                     id: null,
                     recipient_name: config.defaultRecipientName || '',
@@ -302,6 +308,8 @@ function deliveryAddressModalManager() {
                 city: this.form.city.trim(),
                 postal_code: this.form.postal_code.trim(),
                 notes: this.form.notes.trim(),
+                lat: this.lat,
+                lng: this.lng,
                 is_default: this.form.is_default
             };
 

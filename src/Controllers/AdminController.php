@@ -317,6 +317,7 @@ class AdminController extends Controller {
         $id = (int)($_POST['id'] ?? 0);
         $name = trim($_POST['name'] ?? '');
         $description = trim($_POST['description'] ?? '');
+        $allergens = trim($_POST['allergens'] ?? '');
         $categoryId = (int)($_POST['category_id'] ?? 1);
         $price = (float)($_POST['price'] ?? 0.00);
         $imageUrl = trim($_POST['image_url'] ?? '');
@@ -343,6 +344,7 @@ class AdminController extends Controller {
         $data = [
             'name'         => $name,
             'description'  => $description,
+            'allergens'    => $allergens,
             'category_id'  => $categoryId,
             'price'        => $price,
             'image_url'    => $imageUrl,

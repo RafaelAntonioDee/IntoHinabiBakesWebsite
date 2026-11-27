@@ -14,7 +14,7 @@ class Address extends Model {
      */
     public function getAllByUserId(int|string $userId): array {
         try {
-            $sql = "SELECT id, user_id, recipient_name, street_address, barangay, city, postal_code, delivery_notes, is_default
+            $sql = "SELECT id, user_id, recipient_name, street_address, barangay, city, postal_code, delivery_notes, latitude, longitude, is_default
                     FROM " . self::TABLE . "
                     WHERE user_id = :user_id
                     ORDER BY is_default DESC, id ASC";
@@ -32,7 +32,7 @@ class Address extends Model {
      */
     public function getByUserId(int|string $userId): ?array {
         try {
-            $sql = "SELECT id, user_id, recipient_name, street_address, barangay, city, postal_code, delivery_notes, is_default
+            $sql = "SELECT id, user_id, recipient_name, street_address, barangay, city, postal_code, delivery_notes, latitude, longitude, is_default
                     FROM " . self::TABLE . "
                     WHERE user_id = :user_id
                     ORDER BY is_default DESC, id ASC
@@ -52,7 +52,7 @@ class Address extends Model {
      */
     public function findByIdForUser(int|string $addressId, int|string $userId): ?array {
         try {
-            $sql = "SELECT id, user_id, recipient_name, street_address, barangay, city, postal_code, delivery_notes, is_default
+            $sql = "SELECT id, user_id, recipient_name, street_address, barangay, city, postal_code, delivery_notes, latitude, longitude, is_default
                     FROM " . self::TABLE . "
                     WHERE id = :id AND user_id = :user_id
                     LIMIT 1";
@@ -113,13 +113,13 @@ class Address extends Model {
             }
 
             $sql = "INSERT INTO " . self::TABLE . "
-                        (user_id, recipient_name, street_address, barangay, city, postal_code, delivery_notes, is_default)
+                        (user_id, recipient_name, street_address, barangay, city, postal_code, delivery_notes, latitude, longitude, is_default)
                     VALUES
-                        (:user_id, :recipient_name, :street_address, :barangay, :city, :postal_code, :delivery_notes, :is_default)";
+                        (:user_id, :recipient_name, :street_address, :barangay, :city, :postal_code, :delivery_notes, :latitude, :longitude, :is_default)";
 
             $isPgsql = $db->getAttribute(PDO::ATTR_DRIVER_NAME) === 'pgsql';
             if ($isPgsql) {
-                $sql .= " RETURNING id, user_id, recipient_name, street_address, barangay, city, postal_code, delivery_notes, is_default";
+                $sql .= " RETURNING id, user_id, recipient_name, street_address, barangay, city, postal_code, delivery_notes, latitude, longitude, is_default";
             }
 
             $stmt = $db->prepare($sql);
@@ -130,6 +130,8 @@ class Address extends Model {
             $stmt->bindValue(':city', $normalized['city']);
             $stmt->bindValue(':postal_code', $normalized['postal_code']);
             $stmt->bindValue(':delivery_notes', $normalized['delivery_notes']);
+            $stmt->bindValue(':latitude', $normalized['latitude'], $normalized['latitude'] === null ? PDO::PARAM_NULL : PDO::PARAM_STR);
+            $stmt->bindValue(':longitude', $normalized['longitude'], $normalized['longitude'] === null ? PDO::PARAM_NULL : PDO::PARAM_STR);
             $stmt->bindValue(':is_default', $isDefault, PDO::PARAM_BOOL);
             $stmt->execute();
 
@@ -194,6 +196,8 @@ class Address extends Model {
                         city           = :city,
                         postal_code    = :postal_code,
                         delivery_notes = :delivery_notes,
+                        latitude       = :latitude,
+                        longitude      = :longitude,
                         is_default     = :is_default
                     WHERE id = :id AND user_id = :user_id";
 
@@ -204,6 +208,8 @@ class Address extends Model {
             $stmt->bindValue(':city', $normalized['city']);
             $stmt->bindValue(':postal_code', $normalized['postal_code']);
             $stmt->bindValue(':delivery_notes', $normalized['delivery_notes']);
+            $stmt->bindValue(':latitude', $normalized['latitude'], $normalized['latitude'] === null ? PDO::PARAM_NULL : PDO::PARAM_STR);
+            $stmt->bindValue(':longitude', $normalized['longitude'], $normalized['longitude'] === null ? PDO::PARAM_NULL : PDO::PARAM_STR);
             $stmt->bindValue(':is_default', $makeDefault, PDO::PARAM_BOOL);
             $stmt->bindValue(':id', $addressId, PDO::PARAM_INT);
             $stmt->bindValue(':user_id', $userId, PDO::PARAM_INT);
@@ -319,6 +325,9 @@ class Address extends Model {
             $recipientName = $user['full_name'] ?? 'Customer';
         }
 
+        $lat = $data['lat'] ?? $data['latitude'] ?? null;
+        $lng = $data['lng'] ?? $data['longitude'] ?? null;
+
         return [
             'recipient_name' => $recipientName,
             'street_address' => trim((string)($data['street'] ?? $data['street_address'] ?? '')),
@@ -326,6 +335,8 @@ class Address extends Model {
             'city'           => trim((string)($data['city'] ?? '')),
             'postal_code'    => trim((string)($data['postal_code'] ?? '')),
             'delivery_notes' => trim((string)($data['notes'] ?? $data['delivery_notes'] ?? '')),
+            'latitude'       => is_numeric($lat) ? (string)(float)$lat : null,
+            'longitude'      => is_numeric($lng) ? (string)(float)$lng : null,
         ];
     }
 }

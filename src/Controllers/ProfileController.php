@@ -199,6 +199,8 @@ class ProfileController extends Controller {
         $city = trim((string)($input['city'] ?? ''));
         $postalCode = trim((string)($input['postal_code'] ?? ''));
         $notes = trim((string)($input['notes'] ?? $input['delivery_notes'] ?? ''));
+        $lat = $input['lat'] ?? $input['latitude'] ?? null;
+        $lng = $input['lng'] ?? $input['longitude'] ?? null;
         $isDefault = !empty($input['is_default']);
 
         if ($street === '' && $barangay === '') {
@@ -218,6 +220,8 @@ class ProfileController extends Controller {
             'city'           => $city,
             'postal_code'    => $postalCode,
             'notes'          => $notes,
+            'lat'            => $lat,
+            'lng'            => $lng,
             'is_default'     => $isDefault,
         ];
 

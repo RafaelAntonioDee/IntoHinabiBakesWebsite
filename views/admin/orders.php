@@ -85,7 +85,7 @@
                                 <?php endif; ?>
                             </td>
                             <td class="px-5 py-3 font-mono font-black text-stone-900 text-sm">
-                                $<?= number_format((float)($order['total_amount'] ?? 0), 2) ?>
+                                ₱<?= number_format((float)($order['total_amount'] ?? 0), 2) ?>
                             </td>
                             <td class="px-5 py-3">
                                 <?php $badge = match($st) {

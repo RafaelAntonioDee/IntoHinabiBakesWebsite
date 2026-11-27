@@ -40,8 +40,8 @@
                 </select>
             </div>
             <div>
-                <label class="block text-xs font-bold text-stone-700 mb-1">Price (USD)</label>
-                <input type="number" step="0.01" name="price" id="prod_price" required placeholder="3.50"
+                <label class="block text-xs font-bold text-stone-700 mb-1">Price (PHP)</label>
+                <input type="number" step="0.01" name="price" id="prod_price" required placeholder="15.00"
                        class="w-full text-xs px-3 py-2 border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-700 bg-stone-50">
             </div>
         </div>
@@ -54,6 +54,11 @@
             <label class="block text-xs font-bold text-stone-700 mb-1">Description</label>
             <textarea name="description" id="prod_description" rows="2" placeholder="Describe the flavor, texture, and ingredients..."
                       class="w-full text-xs px-3 py-2 border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-700 bg-stone-50"></textarea>
+        </div>
+        <div>
+            <label class="block text-xs font-bold text-stone-700 mb-1">Allergens</label>
+            <input type="text" name="allergens" id="prod_allergens" placeholder="e.g. Wheat (Gluten), Dairy, Eggs, Peanuts"
+                   class="w-full text-xs px-3 py-2 border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-700 bg-stone-50">
         </div>
         <div class="flex items-center gap-6 pt-2">
             <label class="flex items-center gap-2 text-xs font-bold text-stone-700 cursor-pointer">
@@ -124,7 +129,7 @@
                                     <?= e($p['category_name'] ?? 'Bakery') ?>
                                 </span>
                             </td>
-                            <td class="px-5 py-3 font-mono font-bold text-stone-900">$<?= number_format((float)($p['price'] ?? 0), 2) ?></td>
+                            <td class="px-5 py-3 font-mono font-bold text-stone-900">₱<?= number_format((float)($p['price'] ?? 0), 2) ?></td>
                             <td class="px-5 py-3">
                                 <?php if (!empty($p['is_active'])): ?>
                                     <span class="text-emerald-700 font-semibold flex items-center gap-1">
@@ -173,6 +178,7 @@ function editProduct(prod) {
     document.getElementById('prod_price').value = prod.price;
     document.getElementById('prod_image_url').value = prod.image_url;
     document.getElementById('prod_description').value = prod.description || '';
+    document.getElementById('prod_allergens').value = prod.allergens || '';
     document.getElementById('prod_is_active').checked = Boolean(prod.is_active);
     document.getElementById('prod_availability').checked = Boolean(prod.availability);
     window.scrollTo({ top: 0, behavior: 'smooth' });
