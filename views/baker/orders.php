@@ -1,6 +1,6 @@
 <?php require_once dirname(__DIR__) . '/layouts/baker_header.php'; ?>
 
-<!-- Page Header -->
+
 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center pb-6 border-b border-amber-100 mb-6 gap-4">
     <div>
         <h1 class="text-2xl sm:text-3xl font-extrabold text-stone-900 tracking-tight">Baking Queue</h1>

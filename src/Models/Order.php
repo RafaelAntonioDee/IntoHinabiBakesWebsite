@@ -7,6 +7,107 @@ use PDO;
 use PDOException;
 
 class Order extends Model {
+    
+    public const PAYMENT_TYPES = [
+        'cod'   => 1,
+        'gcash' => 2,
+        'bank'  => 3,
+    ];
+
+    
+    private const PAYMENT_STATUS_COD     = 1;
+    private const PAYMENT_STATUS_PENDING = 3;
+
+    public function createOrder(int $userId, array $address, array $items, string $paymentMethod, string $note = ''): array {
+        $db = $this->getDb();
+
+       $ids = array_map('intval', array_keys($items));
+        $placeholders = implode(',', array_fill(0, count($ids), '?'));
+        $stmt = $db->prepare("SELECT * FROM products WHERE id IN ({$placeholders})");
+        $stmt->execute($ids);
+        $products = [];
+        foreach ($stmt->fetchAll() as $row) {
+            $products[(int)$row['id']] = $row;
+        }
+
+        $subtotal = 0.0;
+        foreach ($items as $productId => $qty) {
+            $product = $products[(int)$productId] ?? null;
+            if ($product === null || empty($product['is_active'])
+                || (array_key_exists('availability', $product) && empty($product['availability']))) {
+                $name = $product['name'] ?? 'An item in your cart';
+                return ['success' => false, 'message' => "{$name} is no longer available. Please update your cart."];
+            }
+            $subtotal += (float)$product['price'] * $qty;
+        }
+
+        $deliveryFee   = 0.00;
+        $total         = $subtotal + $deliveryFee;
+        $paymentTypeId = self::PAYMENT_TYPES[$paymentMethod] ?? self::PAYMENT_TYPES['cod'];
+        $paymentStatus = $paymentTypeId === self::PAYMENT_TYPES['cod'] ? self::PAYMENT_STATUS_COD : self::PAYMENT_STATUS_PENDING;
+        $orderNumber   = 'HB-' . date('Ymd') . '-' . strtoupper(bin2hex(random_bytes(3)));
+
+        try {
+            $db->beginTransaction();
+
+            // Delivery address
+            $stmt = $db->prepare("INSERT INTO address_details
+                    (user_id, recipient_name, phone_number, street_address, barangay, city, delivery_notes, is_default)
+                VALUES (:user_id, :recipient_name, :phone_number, :street_address, :barangay, :city, :delivery_notes, FALSE)");
+            $stmt->execute([
+                ':user_id'        => $userId,
+                ':recipient_name' => $address['recipient_name'],
+                ':phone_number'   => $address['phone_number'],
+                ':street_address' => $address['street_address'],
+                ':barangay'       => $address['barangay'],
+                ':city'           => $address['city'],
+                ':delivery_notes' => $address['delivery_notes'] ?? null,
+            ]);
+            $addressId = (int)$db->lastInsertId();
+
+            // Order header (status 1: Pending)
+            $stmt = $db->prepare("INSERT INTO orders
+                    (order_number, user_id, address_id, status, subtotal, delivery_fee, total_amount, payment_method, payment_status, customer_note)
+                VALUES (:order_number, :user_id, :address_id, 1, :subtotal, :delivery_fee, :total_amount, :payment_method, :payment_status, :customer_note)");
+            $stmt->execute([
+                ':order_number'   => $orderNumber,
+                ':user_id'        => $userId,
+                ':address_id'     => $addressId,
+                ':subtotal'       => round($subtotal, 2),
+                ':delivery_fee'   => $deliveryFee,
+                ':total_amount'   => round($total, 2),
+                ':payment_method' => $paymentTypeId,
+                ':payment_status' => $paymentStatus,
+                ':customer_note'  => $note !== '' ? $note : null,
+            ]);
+            $orderId = (int)$db->lastInsertId();
+           $stmt = $db->prepare("INSERT INTO order_items (order_id, product_id, quantity) VALUES (:order_id, :product_id, :quantity)");
+            foreach ($items as $productId => $qty) {
+                $stmt->execute([
+                    ':order_id'   => $orderId,
+                    ':product_id' => (int)$productId,
+                    ':quantity'   => (int)$qty,
+                ]);
+            }
+
+            $db->commit();
+
+            return [
+                'success'      => true,
+                'message'      => 'Order placed successfully.',
+                'order_id'     => $orderId,
+                'order_number' => $orderNumber,
+                'total'        => round($total, 2),
+            ];
+        } catch (PDOException $e) {
+            if ($db->inTransaction()) {
+                $db->rollBack();
+            }
+            error_log('Order creation failed: ' . $e->getMessage());
+            return ['success' => false, 'message' => 'Unable to save your order right now. Please try again.'];
+        }
+    }
+
     /**
      * Get all orders with customer details, address, status, and payment
      */
