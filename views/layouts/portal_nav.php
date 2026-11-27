@@ -180,8 +180,19 @@ $_isLoggedIn  = \App\Core\Session::check();
 
             </div>
 
-            <!-- Right Section: User Profile & Actions -->
+            <!-- Right Section: Cart & User Profile Actions -->
             <div class="hidden md:flex items-center space-x-3 flex-shrink-0">
+                <!-- Cart Icon with Badge -->
+                <a href="<?= url('/cart') ?>" class="relative text-gray-700 hover:text-amber-800 transition flex-shrink-0 p-1" title="Shopping Cart"
+                   x-data="{ cartCount: JSON.parse(localStorage.getItem('hinabi_cart') || '[]').reduce((s, i) => s + i.qty, 0) }"
+                   @storage.window="cartCount = JSON.parse(localStorage.getItem('hinabi_cart') || '[]').reduce((s, i) => s + i.qty, 0)">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 00-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 00-16.536-1.84M7.5 14.25L5.106 5.272M6 20.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm12.75 0a.75.75 0 11-1.5 0 .75.75 0 011.5 0z"/>
+                    </svg>
+                    <span x-show="cartCount > 0" x-text="cartCount"
+                          class="absolute -top-1 -right-1 bg-amber-800 text-white text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center"></span>
+                </a>
+
                 <?php if ($_isLoggedIn): ?>
                     <!-- User Profile Dropdown -->
                     <div class="relative flex-shrink-0">
@@ -279,6 +290,15 @@ $_isLoggedIn  = \App\Core\Session::check();
             </div>
 
             <div class="border-t border-amber-100 pt-2">
+                <a href="<?= url('/cart') ?>" class="flex items-center gap-2 font-medium py-1.5 <?= str_starts_with($_route, '/cart') ? 'text-amber-800 font-bold' : 'text-gray-700' ?>"
+                   x-data="{ mobileCartCount: JSON.parse(localStorage.getItem('hinabi_cart') || '[]').reduce((s, i) => s + i.qty, 0) }">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 00-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 00-16.536-1.84M7.5 14.25L5.106 5.272M6 20.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm12.75 0a.75.75 0 11-1.5 0 .75.75 0 011.5 0z"/>
+                    </svg>
+                    Cart
+                    <span x-show="mobileCartCount > 0" x-text="'(' + mobileCartCount + ')'" class="text-xs text-amber-700 font-bold"></span>
+                </a>
+
                 <?php if ($_isLoggedIn): ?>
                     <a href="<?= url('/profile') ?>" class="block text-amber-800 font-semibold py-1.5">Profile (<?= e(\App\Core\Session::name()) ?>)</a>
                     <a href="<?= url('/logout') ?>" class="block text-rose-600 font-semibold py-1.5">Logout</a>
