@@ -407,31 +407,48 @@ function productCatalog() {
 
         addToCart() {
             if (!this.activeProduct) return;
+            if (!this.isLoggedIn) {
+                window.location.href = '<?= url('/login') ?>';
+                return;
+            }
             const qty = Math.max(1, Math.min(99, parseInt(this.orderQuantity, 10) || 1));
             const note = (this.orderNote || '').trim();
-            let cart = [];
-            try {
-                cart = JSON.parse(localStorage.getItem('hinabi_cart') || '[]');
-            } catch (e) {
-                cart = [];
-            }
-            const existing = cart.find(item => Number(item.id) === Number(this.activeProduct.id) && (item.note || '') === note);
-            if (existing) {
-                existing.quantity = (existing.quantity || 1) + qty;
-            } else {
-                cart.push({
-                    id: this.activeProduct.id,
-                    name: this.activeProduct.name,
-                    price: parseFloat(this.activeProduct.price) || 0,
-                    image_url: this.activeProduct.image_url,
+            const self = this;
+
+            $.ajax({
+                url: '<?= url('/cart/add') ?>',
+                method: 'POST',
+                contentType: 'application/json',
+                dataType: 'json',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
+                },
+                data: JSON.stringify({
+                    product_id: self.activeProduct.id,
                     quantity: qty,
-                    note: note
-                });
-            }
-            localStorage.setItem('hinabi_cart', JSON.stringify(cart));
-            window.dispatchEvent(new CustomEvent('cart-updated', { detail: cart }));
-            this.addedToCart = true;
-            setTimeout(() => { this.addedToCart = false; }, 1500);
+                    customer_note: note
+                })
+            })
+            .done(function(res) {
+                if (res && res.success) {
+                    window.dispatchEvent(new CustomEvent('cart-updated', { detail: res }));
+                    self.addedToCart = true;
+                    setTimeout(function() { self.addedToCart = false; }, 1500);
+                } else if (res && res.requires_login) {
+                    window.location.href = '<?= url('/login') ?>';
+                } else {
+                    alert((res && res.error) ? res.error : 'Could not add item to cart.');
+                }
+            })
+            .fail(function(xhr) {
+                const json = xhr.responseJSON;
+                if (xhr.status === 401 || (json && json.requires_login)) {
+                    window.location.href = '<?= url('/login') ?>';
+                    return;
+                }
+                alert((json && json.error) ? json.error : 'Could not add item to cart.');
+            });
         },
 
         openModal(productId) {

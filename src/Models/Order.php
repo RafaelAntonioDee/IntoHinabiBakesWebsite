@@ -190,4 +190,141 @@ class Order extends Model {
             ];
         }
     }
+
+    /**
+     * Transfer a user's Supabase cart into payments, orders, and order_items, then clear the cart.
+     *
+     * @return array{success: bool, order_id?: int, order_number?: string, error?: string}
+     */
+    public function createFromCart(int $userId, int $addressId, int $paymentTypeId = 1, float $deliveryFee = 0.00): array {
+        $db = $this->getDb();
+        $isPgsql = $db->getAttribute(PDO::ATTR_DRIVER_NAME) === 'pgsql';
+
+        try {
+            $db->beginTransaction();
+
+            $cartStmt = $db->prepare(
+                "SELECT c.id, c.product_id, c.quantity, c.customer_note, p.price
+                 FROM carts c
+                 INNER JOIN products p ON c.product_id = p.id
+                 WHERE c.user_id = :user_id
+                 ORDER BY c.id ASC"
+            );
+            $cartStmt->execute([':user_id' => $userId]);
+            $cartItems = $cartStmt->fetchAll(PDO::FETCH_ASSOC);
+
+            if (empty($cartItems)) {
+                $db->rollBack();
+                return ['success' => false, 'error' => 'Your cart is empty.'];
+            }
+
+            $subtotal = 0.0;
+            foreach ($cartItems as $item) {
+                $subtotal += (float)$item['price'] * (int)$item['quantity'];
+            }
+            $subtotal = round($subtotal, 2);
+            $totalAmount = round($subtotal + $deliveryFee, 2);
+            $orderNumber = 'HB-' . date('Ymd') . '-' . strtoupper(substr(bin2hex(random_bytes(3)), 0, 6));
+
+            // 1. Create payment record (1: Cash on Delivery -> status 1, others -> status 3 Pending)
+            $paymentStatusId = ($paymentTypeId === 1) ? 1 : 3;
+            $paySql = "INSERT INTO payments (payment_type, payment_status) VALUES (:payment_type, :payment_status)";
+            if ($isPgsql) {
+                $paySql .= " RETURNING id";
+            }
+            $payStmt = $db->prepare($paySql);
+            $payStmt->execute([
+                ':payment_type'   => $paymentTypeId,
+                ':payment_status' => $paymentStatusId,
+            ]);
+            $paymentId = $isPgsql ? (int)$payStmt->fetchColumn() : (int)$db->lastInsertId();
+
+            // 2. Create order record (status 1 = Pending)
+            $ordSql = "INSERT INTO orders (order_number, user_id, address_id, status, subtotal, delivery_fee, total_amount, payment_id, created_at)
+                       VALUES (:order_number, :user_id, :address_id, 1, :subtotal, :delivery_fee, :total_amount, :payment_id, CURRENT_TIMESTAMP)";
+            if ($isPgsql) {
+                $ordSql .= " RETURNING id";
+            }
+            $ordStmt = $db->prepare($ordSql);
+            $ordStmt->execute([
+                ':order_number' => $orderNumber,
+                ':user_id'      => $userId,
+                ':address_id'   => $addressId,
+                ':subtotal'     => $subtotal,
+                ':delivery_fee' => $deliveryFee,
+                ':total_amount' => $totalAmount,
+                ':payment_id'   => $paymentId,
+            ]);
+            $orderId = $isPgsql ? (int)$ordStmt->fetchColumn() : (int)$db->lastInsertId();
+
+            // 3. Transfer cart items to order_items
+            $itemStmt = $db->prepare(
+                "INSERT INTO order_items (order_id, product_id, quantity, customer_note)
+                 VALUES (:order_id, :product_id, :quantity, :customer_note)"
+            );
+            foreach ($cartItems as $item) {
+                $note = trim((string)($item['customer_note'] ?? ''));
+                $itemStmt->bindValue(':order_id', $orderId, PDO::PARAM_INT);
+                $itemStmt->bindValue(':product_id', (int)$item['product_id'], PDO::PARAM_INT);
+                $itemStmt->bindValue(':quantity', (int)$item['quantity'], PDO::PARAM_INT);
+                $itemStmt->bindValue(':customer_note', $note === '' ? null : $note, $note === '' ? PDO::PARAM_NULL : PDO::PARAM_STR);
+                $itemStmt->execute();
+            }
+
+            // 4. Clear user's cart
+            $clearStmt = $db->prepare("DELETE FROM carts WHERE user_id = :user_id");
+            $clearStmt->execute([':user_id' => $userId]);
+
+            $db->commit();
+
+            return [
+                'success'      => true,
+                'order_id'     => $orderId,
+                'order_number' => $orderNumber,
+            ];
+        } catch (\Throwable $e) {
+            if ($db->inTransaction()) {
+                $db->rollBack();
+            }
+            error_log("Error creating order from cart for user {$userId}: " . $e->getMessage());
+            return ['success' => false, 'error' => 'Failed to place order: ' . $e->getMessage()];
+        }
+    }
+
+    /**
+     * Get all orders belonging to a specific user
+     */
+    public function findByUser(int|string $userId): array {
+        $sql = "SELECT o.*, os.status AS status_name
+                FROM orders o
+                LEFT JOIN order_status os ON o.status = os.id
+                WHERE o.user_id = :user_id
+                ORDER BY o.id DESC";
+        try {
+            $stmt = $this->getDb()->prepare($sql);
+            $stmt->execute([':user_id' => (int)$userId]);
+            return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+        } catch (PDOException $e) {
+            return [];
+        }
+    }
+
+    /**
+     * Find a single order owned by a specific user
+     */
+    public function findByIdAndUser(int|string $orderId, int|string $userId): ?array {
+        $sql = "SELECT o.*, os.status AS status_name
+                FROM orders o
+                LEFT JOIN order_status os ON o.status = os.id
+                WHERE o.id = :id AND o.user_id = :user_id
+                LIMIT 1";
+        try {
+            $stmt = $this->getDb()->prepare($sql);
+            $stmt->execute([':id' => (int)$orderId, ':user_id' => (int)$userId]);
+            $row = $stmt->fetch(PDO::FETCH_ASSOC);
+            return $row ?: null;
+        } catch (PDOException $e) {
+            return null;
+        }
+    }
 }

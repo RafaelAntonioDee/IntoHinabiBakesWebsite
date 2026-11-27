@@ -11,46 +11,46 @@ class OrderItem extends Model {
      */
     public function create(array $data): int|string|false {
         $db = $this->getDb();
+        $note = trim((string)($data['customer_note'] ?? ''));
 
-        $stmt = $db->prepare(
-            "INSERT INTO order_items (order_id, product_id, product_name, quantity, unit_price, subtotal)
-             VALUES (:order_id, :product_id, :product_name, :quantity, :unit_price, :subtotal)"
-        );
+        $sql = "INSERT INTO order_items (order_id, product_id, quantity, customer_note)
+                VALUES (:order_id, :product_id, :quantity, :customer_note)";
+        $isPgsql = $db->getAttribute(PDO::ATTR_DRIVER_NAME) === 'pgsql';
+        if ($isPgsql) {
+            $sql .= " RETURNING id";
+        }
 
-        $success = $stmt->execute([
-            ':order_id'     => $data['order_id'],
-            ':product_id'   => $data['product_id'],
-            ':product_name' => $data['product_name'],
-            ':quantity'     => $data['quantity'],
-            ':unit_price'   => $data['unit_price'],
-            ':subtotal'     => $data['subtotal'],
-        ]);
+        $stmt = $db->prepare($sql);
+        $stmt->bindValue(':order_id', (int)$data['order_id'], PDO::PARAM_INT);
+        $stmt->bindValue(':product_id', (int)$data['product_id'], PDO::PARAM_INT);
+        $stmt->bindValue(':quantity', max(1, (int)$data['quantity']), PDO::PARAM_INT);
+        $stmt->bindValue(':customer_note', $note === '' ? null : $note, $note === '' ? PDO::PARAM_NULL : PDO::PARAM_STR);
+        $success = $stmt->execute();
 
-        return $success ? $db->lastInsertId() : false;
+        if (!$success) {
+            return false;
+        }
+        return $isPgsql ? (int)$stmt->fetchColumn() : $db->lastInsertId();
     }
 
     /**
-     * Bulk-insert multiple items for an order (more efficient than individual inserts)
+     * Bulk-insert multiple items for an order
      */
     public function createMany(int|string $orderId, array $items): bool {
         $db = $this->getDb();
 
         $stmt = $db->prepare(
-            "INSERT INTO order_items (order_id, product_id, product_name, quantity, unit_price, subtotal)
-             VALUES (:order_id, :product_id, :product_name, :quantity, :unit_price, :subtotal)"
+            "INSERT INTO order_items (order_id, product_id, quantity, customer_note)
+             VALUES (:order_id, :product_id, :quantity, :customer_note)"
         );
 
         foreach ($items as $item) {
-            $success = $stmt->execute([
-                ':order_id'     => $orderId,
-                ':product_id'   => $item['product_id'],
-                ':product_name' => $item['product_name'],
-                ':quantity'     => $item['quantity'],
-                ':unit_price'   => $item['unit_price'],
-                ':subtotal'     => $item['unit_price'] * $item['quantity'],
-            ]);
-
-            if (!$success) {
+            $note = trim((string)($item['customer_note'] ?? ''));
+            $stmt->bindValue(':order_id', (int)$orderId, PDO::PARAM_INT);
+            $stmt->bindValue(':product_id', (int)$item['product_id'], PDO::PARAM_INT);
+            $stmt->bindValue(':quantity', max(1, (int)$item['quantity']), PDO::PARAM_INT);
+            $stmt->bindValue(':customer_note', $note === '' ? null : $note, $note === '' ? PDO::PARAM_NULL : PDO::PARAM_STR);
+            if (!$stmt->execute()) {
                 return false;
             }
         }
@@ -59,13 +59,17 @@ class OrderItem extends Model {
     }
 
     /**
-     * Get all items for a given order
+     * Get all items for a given order joined with product info
      */
     public function findByOrder(int|string $orderId): array {
         $stmt = $this->getDb()->prepare(
-            "SELECT * FROM order_items WHERE order_id = :order_id ORDER BY id ASC"
+            "SELECT oi.*, p.name AS product_name, p.price, p.image_url
+             FROM order_items oi
+             LEFT JOIN products p ON oi.product_id = p.id
+             WHERE oi.order_id = :order_id
+             ORDER BY oi.id ASC"
         );
-        $stmt->execute([':order_id' => $orderId]);
-        return $stmt->fetchAll();
+        $stmt->execute([':order_id' => (int)$orderId]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
     }
 }

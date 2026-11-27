@@ -5,8 +5,8 @@ namespace App\Controllers;
 use App\Core\Controller;
 use App\Core\Session;
 use App\Models\Address;
+use App\Models\Cart;
 use App\Models\Order;
-use App\Models\OrderItem;
 
 class CheckoutController extends Controller {
     /**
@@ -19,18 +19,20 @@ class CheckoutController extends Controller {
             return;
         }
 
-        $cart = $_SESSION['cart'] ?? [];
+        $userId = Session::id();
+        $cartModel = new Cart();
+        $cart = $cartModel->getByUserId($userId);
         if (empty($cart)) {
             flash('error', 'Your cart is empty.');
             $this->redirect('/products');
             return;
         }
 
-        $userId = Session::id();
         $addressModel = new Address();
-        $addresses = $addressModel->findByUser($userId);
+        $addresses = $addressModel->getAllByUserId($userId);
 
-        $subtotal = $this->calculateSubtotal($cart);
+        $totals = $cartModel->calculateTotals($cart);
+        $subtotal = $totals['subtotal'];
         $deliveryFee = $this->calculateDeliveryFee($subtotal);
         $total = round($subtotal + $deliveryFee, 2);
 
@@ -45,7 +47,7 @@ class CheckoutController extends Controller {
     }
 
     /**
-     * Process the checkout form submission and place the order
+     * Process checkout and transfer Supabase cart items to orders + order_items
      */
     public function placeOrder(): void {
         if (!Session::check()) {
@@ -54,19 +56,24 @@ class CheckoutController extends Controller {
             return;
         }
 
-        $cart = $_SESSION['cart'] ?? [];
+        $userId = Session::id();
+        $cartModel = new Cart();
+        $cart = $cartModel->getByUserId($userId);
         if (empty($cart)) {
             flash('error', 'Your cart is empty.');
             $this->redirect('/products');
             return;
         }
 
-        $userId        = Session::id();
-        $addressId     = $_POST['address_id'] ?? null;
-        $paymentMethod = $_POST['payment_method'] ?? 'cod';
-        $notes         = trim($_POST['notes'] ?? '');
+        $addressId = $_POST['address_id'] ?? null;
+        $paymentMethodRaw = strtolower(trim((string)($_POST['payment_method'] ?? '1')));
+        $paymentTypeId = match ($paymentMethodRaw) {
+            '2', 'gcash' => 2,
+            '3', 'bank'  => 3,
+            default      => 1,
+        };
 
-        // ── Handle "new address" submitted inline during checkout ──
+        // Handle inline new address during checkout
         if (empty($addressId) || $addressId === 'new') {
             $addressId = $this->createInlineAddress($userId);
             if (!$addressId) {
@@ -76,88 +83,34 @@ class CheckoutController extends Controller {
             }
         }
 
-        // Verify the address belongs to this user
         $addressModel = new Address();
-        $address = $addressModel->findByIdAndUser($addressId, $userId);
+        $address = $addressModel->findByIdForUser($addressId, $userId);
         if (!$address) {
             flash('error', 'Invalid delivery address selected.');
             $this->redirect('/checkout');
             return;
         }
 
-        // ── Calculate totals ──
-        $subtotal    = $this->calculateSubtotal($cart);
-        $deliveryFee = $this->calculateDeliveryFee($subtotal);
-        $total       = round($subtotal + $deliveryFee, 2);
+        $totals = $cartModel->calculateTotals($cart);
+        $deliveryFee = $this->calculateDeliveryFee($totals['subtotal']);
 
-        // ── Create the order ──
-        try {
-            $orderModel = new Order();
-            $orderId = $orderModel->create([
-                'user_id'        => $userId,
-                'address_id'     => $addressId,
-                'subtotal'       => $subtotal,
-                'delivery_fee'   => $deliveryFee,
-                'total'          => $total,
-                'payment_method' => $paymentMethod,
-                'notes'          => $notes,
-                'status'         => 'pending',
-            ]);
+        $orderModel = new Order();
+        $result = $orderModel->createFromCart($userId, (int)$addressId, $paymentTypeId, $deliveryFee);
 
-            if (!$orderId) {
-                flash('error', 'Failed to place order. Please try again.');
-                $this->redirect('/checkout');
-                return;
-            }
-
-            // ── Save order items ──
-            $orderItemModel = new OrderItem();
-            $items = [];
-            foreach ($cart as $item) {
-                $items[] = [
-                    'product_id'   => $item['product_id'],
-                    'product_name' => $item['name'],
-                    'quantity'     => $item['quantity'],
-                    'unit_price'   => $item['price'],
-                ];
-            }
-
-            $orderItemModel->createMany($orderId, $items);
-
-            // ── Clear cart ──
-            $_SESSION['cart'] = [];
-
-            flash('success', 'Order #' . $orderId . ' placed successfully! Thank you for your purchase.');
-            $this->redirect('/orders/' . $orderId);
-        } catch (\Throwable $e) {
-            $msg = env('APP_DEBUG', false)
-                ? 'Checkout error: ' . $e->getMessage()
-                : 'Something went wrong. Please try again.';
-            flash('error', $msg);
+        if (!$result['success']) {
+            flash('error', $result['error'] ?? 'Failed to place order. Please try again.');
             $this->redirect('/checkout');
+            return;
         }
+
+        $orderId = (int)$result['order_id'];
+        flash('success', 'Order ' . ($result['order_number'] ?? ('#' . $orderId)) . ' placed successfully!');
+        $this->redirect('/orders/show?id=' . $orderId);
     }
 
-    // ─── Helpers ─────────────────────────────────────────────
-
-    /**
-     * Calculate cart subtotal from session cart
-     */
-    private function calculateSubtotal(array $cart): float {
-        $subtotal = 0;
-        foreach ($cart as $item) {
-            $subtotal += $item['price'] * $item['quantity'];
-        }
-        return round($subtotal, 2);
-    }
-
-    /**
-     * Calculate delivery fee (free delivery for orders over a threshold)
-     */
     private function calculateDeliveryFee(float $subtotal): float {
         $freeDeliveryThreshold = 50.00;
         $standardFee = 5.00;
-
         return ($subtotal >= $freeDeliveryThreshold) ? 0.00 : $standardFee;
     }
 
