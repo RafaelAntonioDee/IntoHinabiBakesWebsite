@@ -28,6 +28,13 @@ class Address extends Model {
     }
 
     /**
+     * Compatibility alias for CheckoutController
+     */
+    public function findByUser(int|string $userId): array {
+        return $this->getAllByUserId($userId);
+    }
+
+    /**
      * Get primary/default address by User ID.
      */
     public function getByUserId(int|string $userId): ?array {
@@ -43,6 +50,25 @@ class Address extends Model {
             return $row ?: null;
         } catch (\Exception $e) {
             error_log("Error fetching address for user {$userId}: " . $e->getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * Find a single address by ID.
+     */
+    public function findById(int|string $addressId): ?array {
+        try {
+            $sql = "SELECT id, user_id, recipient_name, street_address, barangay, city, postal_code, delivery_notes, latitude, longitude, is_default
+                    FROM " . self::TABLE . "
+                    WHERE id = :id
+                    LIMIT 1";
+            $stmt = $this->getDb()->prepare($sql);
+            $stmt->execute([':id' => (int)$addressId]);
+            $row = $stmt->fetch(PDO::FETCH_ASSOC);
+            return $row ?: null;
+        } catch (\Exception $e) {
+            error_log("Error finding address {$addressId}: " . $e->getMessage());
             return null;
         }
     }
@@ -67,6 +93,13 @@ class Address extends Model {
             error_log("Error finding address {$addressId} for user {$userId}: " . $e->getMessage());
             return null;
         }
+    }
+
+    /**
+     * Compatibility alias for CheckoutController
+     */
+    public function findByIdAndUser(int|string $addressId, int|string $userId): ?array {
+        return $this->findByIdForUser($addressId, $userId);
     }
 
     /**
@@ -158,6 +191,17 @@ class Address extends Model {
                 'error'   => 'Failed to save address to database.',
             ];
         }
+    }
+
+    /**
+     * Compatibility helper for CheckoutController::createInlineAddress()
+     */
+    public function create(array $data): int|string|false {
+        if (empty($data['user_id'])) {
+            return false;
+        }
+        $res = $this->createForUser($data['user_id'], $data);
+        return ($res['success'] && !empty($res['address']['id'])) ? $res['address']['id'] : false;
     }
 
     /**
@@ -317,7 +361,7 @@ class Address extends Model {
      * Normalize incoming address payload to match user_address_details columns.
      */
     private function normalizeAddressData(PDO $db, int $userId, array $data): array {
-        $recipientName = trim((string)($data['recipient_name'] ?? ''));
+        $recipientName = trim((string)($data['recipient_name'] ?? $data['full_name'] ?? ''));
         if ($recipientName === '') {
             $userStmt = $db->prepare("SELECT full_name FROM users WHERE id = :id LIMIT 1");
             $userStmt->execute([':id' => $userId]);
@@ -333,7 +377,7 @@ class Address extends Model {
             'street_address' => trim((string)($data['street'] ?? $data['street_address'] ?? '')),
             'barangay'       => trim((string)($data['barangay'] ?? '')),
             'city'           => trim((string)($data['city'] ?? '')),
-            'postal_code'    => trim((string)($data['postal_code'] ?? '')),
+            'postal_code'    => trim((string)($data['postal_code'] ?? $data['zip_code'] ?? '')),
             'delivery_notes' => trim((string)($data['notes'] ?? $data['delivery_notes'] ?? '')),
             'latitude'       => is_numeric($lat) ? (string)(float)$lat : null,
             'longitude'      => is_numeric($lng) ? (string)(float)$lng : null,

@@ -14,6 +14,9 @@ use App\Controllers\AboutController;
 use App\Controllers\ContactController;
 use App\Controllers\AuthController;
 use App\Controllers\ProfileController;
+use App\Controllers\CartController;
+use App\Controllers\CheckoutController;
+use App\Controllers\OrderController;
 use App\Controllers\BakerController;
 use App\Controllers\AdminController;
 
@@ -42,6 +45,24 @@ $router->post('/api/address/save', [ProfileController::class, 'saveAddress']);
 $router->post('/api/address/default', [ProfileController::class, 'setDefaultAddress']);
 $router->post('/api/address/delete', [ProfileController::class, 'deleteAddress']);
 
+// 5. Cart Routes
+$router->get('/cart', [CartController::class, 'index']);
+$router->post('/cart/add', [CartController::class, 'add']);
+$router->post('/cart/update', [CartController::class, 'update']);
+$router->post('/cart/remove', [CartController::class, 'remove']);
+$router->post('/cart/clear', [CartController::class, 'clear']);
+$router->get('/cart/json', [CartController::class, 'getCartJson']);
+
+// 6. Checkout Routes
+$router->get('/checkout', [CheckoutController::class, 'index']);
+$router->post('/checkout', [CheckoutController::class, 'placeOrder']);
+
+// 7. Order Routes
+$router->get('/orders', [OrderController::class, 'index']);
+$router->get('/orders/show', [OrderController::class, 'show']);
+$router->post('/orders/cancel', [OrderController::class, 'cancel']);
+
+// 8. Dispatch Request
 // 5. Define Baker Kitchen Routes (RBAC: Baker & Admin)
 $router->get('/baker', [BakerController::class, 'index']);
 $router->get('/baker/orders', [BakerController::class, 'orders']);
